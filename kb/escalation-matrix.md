@@ -1,0 +1,3 @@
+# Escalation Matrix
+
+Escalation moves a ticket up three defined tiers: Tier 1 is the front-line support agent, Tier 2 is the city operations specialist, and Tier 3 is the regional operations manager. A ticket escalates from Tier 1 to Tier 2 when it has been open past half its resolution SLA, when the customer has contacted us three or more times on the same issue, or when the resolution requires a fare adjustment above 500 rupees. Escalation from Tier 2 to Tier 3 is reserved for safety incidents, regulatory or law-enforcement requests, and any case with media or social-media exposure. The escalating agent must attach a written handover summary; an escalation without a handover summary is returned to the sender.

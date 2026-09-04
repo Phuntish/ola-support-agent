@@ -1,0 +1,3 @@
+# Ticket Priority Classification
+
+Every incoming support ticket is assigned exactly one priority band at intake: P1, P2, P3 or P4. A ticket is P1 when the rider or driver is stranded, physically unsafe, or locked out of an active trip, and P2 when money has moved incorrectly, such as a double charge or a failed refund. P3 covers account and app problems that block normal use but carry no safety or money impact, while P4 is reserved for general questions, feature requests and informational requests. Agents may raise a priority band at any point during handling, but lowering a band requires the shift lead to record a reason in the ticket notes.

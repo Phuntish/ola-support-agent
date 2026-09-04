@@ -1,0 +1,3 @@
+# Response and Resolution SLA by Severity
+
+Each priority band carries its own first-response target and its own resolution target, measured from the moment the ticket is created. P1 tickets must receive a first response within 15 minutes and a resolution within 4 hours. P2 tickets are answered within 1 hour and resolved within 24 hours, while P3 tickets are answered within 4 hours and resolved within 3 business days. P4 tickets carry a 1 business-day response target and no fixed resolution deadline. A ticket that breaches either clock is flagged automatically in the queue dashboard and counts against the team's weekly SLA compliance figure.
