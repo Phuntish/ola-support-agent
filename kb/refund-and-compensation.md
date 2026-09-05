@@ -1,0 +1,3 @@
+# Refund and Compensation Policy
+
+Refunds are issued when a rider was charged for a trip that did not take place, was charged twice for one trip, or was billed a toll or surcharge that does not apply on the route taken. Approved refunds return to the original payment method within 5 to 7 working days, or immediately to the Ola Money wallet if the rider prefers the faster route. A front-line agent may approve a refund up to 1,000 rupees without a second signature; anything above that needs city-operations approval. Compensation beyond the disputed fare, such as a goodwill amount for a badly delayed pickup, is discretionary and capped at 500 rupees per incident.

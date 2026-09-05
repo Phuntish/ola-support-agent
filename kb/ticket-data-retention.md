@@ -1,0 +1,3 @@
+# Ticket Data Retention
+
+Support ticket records, including the conversation transcript and any attachments, are retained for 24 months from the date the ticket is closed and are then deleted automatically. Trip identifiers and payment references inside a ticket are stored in masked form, and the full values stay in the systems that own them rather than being copied into the support record. Tickets connected to a safety incident, a regulatory request, or active litigation are placed under a legal hold and are exempt from the automatic deletion until the hold is lifted. A customer may request erasure of their support history at any time, and the request is completed within 30 days unless a legal hold applies.

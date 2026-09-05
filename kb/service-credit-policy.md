@@ -1,0 +1,3 @@
+# Service Credit Policy
+
+A service credit is a non-cash amount added to the customer's Ola Money wallet to acknowledge a service failure that a refund alone does not cover. Credits are granted for confirmed SLA breaches, for cancellations caused by the driver where the rider had to rebook, and for app faults that forced a rider to abandon a booking. The standard credit is 100 rupees, rising to 250 rupees where the customer was left waiting more than 30 minutes. Service credits expire 90 days after issue, cannot be withdrawn as cash, and are limited to two per customer in any rolling 30-day window.

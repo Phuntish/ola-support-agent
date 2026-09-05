@@ -1,0 +1,3 @@
+# Customer Communication Channel Policy
+
+Support is offered through four channels: in-app chat, the support email address, the callback request form, and the outbound phone call placed by an agent. In-app chat is the default channel for every new ticket because it carries the trip context automatically, and agents should keep the conversation there unless the customer asks otherwise. Outbound phone calls are reserved for P1 tickets, safety follow-ups, and cases where two chat replies have failed to resolve the issue. Agents must never move a conversation to a personal number, a personal email account, or any messaging app outside the approved list, and every channel switch is recorded in the ticket history.

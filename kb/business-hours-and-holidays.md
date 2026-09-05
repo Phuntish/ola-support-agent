@@ -1,0 +1,3 @@
+# Business Hours and Holiday Support Coverage
+
+Safety and trip-related support runs 24 hours a day, every day of the year, including national holidays. Billing, refunds and account-verification desks operate from 09:00 to 21:00 IST on working days, and from 10:00 to 18:00 IST on Sundays and gazetted holidays. Tickets that arrive for a closed desk are queued and their response clock starts at the next opening time, except for P1 tickets, which are routed to the always-on safety desk immediately. During major festival periods the operations team publishes a revised roster at least seven days in advance.

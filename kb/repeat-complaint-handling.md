@@ -1,0 +1,3 @@
+# Repeat Complaint Handling
+
+A complaint counts as a repeat when the same customer raises the same underlying problem within 30 days of a previous ticket being closed. The second ticket must be linked to the original rather than handled as a fresh case, and it skips the normal queue to go straight to the agent who closed the first one where possible. On a third contact about the same problem, the ticket is escalated to Tier 2 automatically and a root-cause note is required before it can be closed again. Repeat rates are reviewed weekly, because a cluster of repeats on one issue usually points at a broken process rather than a difficult customer.

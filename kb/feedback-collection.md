@@ -1,0 +1,3 @@
+# Feedback Collection Process
+
+Every ticket that reaches Resolved or Closed triggers a short satisfaction survey sent on the same channel the customer used, asking for a one-to-five rating and an optional comment. The survey is sent once, no earlier than 30 minutes after closure and no later than 24 hours after it, and it is never re-sent for the same ticket. Any rating of one or two opens a follow-up review task for the shift lead within one working day. Survey results are aggregated per agent and per city each week, and comments containing a safety keyword are pulled out of the aggregate and routed to the safety desk directly.

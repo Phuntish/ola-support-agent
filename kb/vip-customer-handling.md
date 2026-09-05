@@ -1,0 +1,3 @@
+# VIP Customer Handling
+
+VIP status covers corporate account holders, Ola Select members, and drivers in the top performance tier of their city. VIP tickets enter a dedicated queue and are handled at one priority band above their normal classification, so a P3 account problem from a VIP is worked as a P2. Named account managers handle corporate VIP tickets end to end rather than passing them along the tiers, and the customer is told who owns their case in the first reply. VIP status changes the speed and ownership of the handling, never the outcome: refund limits, compensation caps and evidence requirements are identical to those applied to every other customer.
