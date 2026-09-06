@@ -1,0 +1,45 @@
+# Ola Domain Support Agent - pinned to the versions this repo was built and tested against.
+# Python 3.11 only. On Intel macOS, PyTorch ships no wheels past 2.2.2 and that
+# wheel covers Python 3.8-3.12; CrewAI separately requires <3.14.
+#
+#   python3.11 -m venv .venv
+#   .venv/bin/pip install -r requirements.txt
+
+# --- retrieval core ---
+sentence-transformers==2.7.0
+torch==2.2.2
+transformers==4.46.3
+tokenizers==0.20.3
+numpy==1.26.4
+scikit-learn==1.9.0
+scipy==1.17.1
+chromadb==1.1.1
+
+# ChromaDB disables its telemetry when asked, but it still calls into posthog on
+# the way out. posthog 4+ changed the capture() signature, which turns that
+# no-op into a stream of "Failed to send telemetry event" lines in every
+# transcript. Pinning below 4 keeps the output clean; telemetry stays off.
+posthog==3.7.4
+
+# --- orchestration ---
+crewai==1.9.3
+autogen-agentchat==0.7.5
+autogen-core==0.7.5
+langchain-core==1.6.2
+
+# CrewAI pins the OpenTelemetry SDK to 1.34.1 / 0.55b1. The instrumentation
+# packages must be held at the matching 0.55b1 or `pip check` reports a conflict.
+opentelemetry-instrumentation==0.55b1
+opentelemetry-instrumentation-asgi==0.55b1
+opentelemetry-instrumentation-fastapi==0.55b1
+opentelemetry-util-http==0.55b1
+
+# --- api layer ---
+fastapi==0.141.1
+uvicorn==0.52.4
+websockets==17.1
+python-multipart==0.0.32
+pydantic==2.11.10
+
+# --- tests ---
+pytest==9.1.1
