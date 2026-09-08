@@ -1,0 +1,76 @@
+# Task 4 - grounded generation
+# module: python -m rag.generate
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 15.2s
+######################################################################
+
+======================================================================
+TASK 4 - GROUNDED GENERATION
+======================================================================
+retrieval collection : sentence
+top_k                : 3
+
+----------------------------------------------------------------------
+THRESHOLD CALIBRATION
+----------------------------------------------------------------------
+Top-1 cosine similarity, in-scope queries
+  0.6984  What is the first response time for a P1 ticket?
+  0.6766  How long does a refund take to reach the original payment method?
+  0.7369  When does a ticket escalate from Tier 1 to Tier 2?
+  0.5779  How much is a standard service credit worth?
+  0.7835  How long are closed support tickets kept before deletion?
+  0.4507  Are billing queries handled on a public holiday?
+
+Top-1 cosine similarity, out-of-scope queries
+  0.0476  What is the boiling point of water at sea level?
+  0.1613  Who won the cricket world cup in 2011?
+  0.1254  Write me a Python function that reverses a linked list.
+
+lowest in-scope    : 0.4507
+highest out-of-scope: 0.1613
+observed gap        : 0.2894
+threshold (midpoint): 0.3060
+threshold in use    : 0.3060
+
+----------------------------------------------------------------------
+IN-SCOPE DEMONSTRATION (5 queries)
+----------------------------------------------------------------------
+
+[1] Q: How quickly must we reply to a P2 billing complaint?
+    top-1 similarity : 0.5328  (threshold 0.3060)
+    refused          : False
+    sources          : sla-by-severity, repeat-complaint-handling
+    A: P2 tickets are answered within 1 hour and resolved within 24 hours, while P3 tickets are answered within 4 hours and resolved within 3 business days. P4 tickets carry a 1 business-day response target and no fixed resolution deadline. P1 tickets must receive a first response within 15 minutes and a resolution within 4 hours.
+
+[2] Q: A rider was charged twice for the same trip, what is the refund rule?
+    top-1 similarity : 0.6377  (threshold 0.3060)
+    refused          : False
+    sources          : refund-and-compensation, repeat-complaint-handling
+    A: Refunds are issued when a rider was charged for a trip that did not take place, was charged twice for one trip, or was billed a toll or surcharge that does not apply on the route taken. Approved refunds return to the original payment method within 5 to 7 working days, or immediately to the Ola Money wallet if the rider prefers the faster route. The second ticket must be linked to the original rather than handled as a fresh case, and it skips the normal queue to go straight to the agent who closed the first one where possible.
+
+[3] Q: When should a support agent phone the customer instead of using chat?
+    top-1 similarity : 0.5623  (threshold 0.3060)
+    refused          : False
+    sources          : communication-channels
+    A: Support is offered through four channels: in-app chat, the support email address, the callback request form, and the outbound phone call placed by an agent. In-app chat is the default channel for every new ticket because it carries the trip context automatically, and agents should keep the conversation there unless the customer asks otherwise. Agents must never move a conversation to a personal number, a personal email account, or any messaging app outside the approved list, and every channel switch is recorded in the ticket history.
+
+[4] Q: What happens if the same customer complains about the same thing three times?
+    top-1 similarity : 0.6198  (threshold 0.3060)
+    refused          : False
+    sources          : repeat-complaint-handling
+    A: A complaint counts as a repeat when the same customer raises the same underlying problem within 30 days of a previous ticket being closed. The second ticket must be linked to the original rather than handled as a fresh case, and it skips the normal queue to go straight to the agent who closed the first one where possible. Repeat rates are reviewed weekly, because a cluster of repeats on one issue usually points at a broken process rather than a difficult customer.
+
+[5] Q: What do we tell riders while a city-wide outage is still going on?
+    top-1 similarity : 0.5277  (threshold 0.3060)
+    refused          : False
+    sources          : outage-communication
+    A: Updates go out every 30 minutes until service is restored, even when there is nothing new to report, and agents must not speculate about the cause or promise a restoration time that engineering has not confirmed. Tickets raised during the outage window are tagged with the incident identifier so they can be reviewed together and compensated in one batch afterwards. When a platform component fails widely enough to affect bookings in a city, the incident commander declares an outage and support switches to outage mode within 10 minutes.
+
+----------------------------------------------------------------------
+OUT-OF-SCOPE DEMONSTRATION - must refuse
+----------------------------------------------------------------------
+
+Q: What is the current share price of Ola Electric?
+    top-1 similarity : 0.2731  (threshold 0.3060)
+    refused          : True
+    A: I don't know. The Ola support knowledge base I have access to does not cover that, so I would rather say nothing than guess.

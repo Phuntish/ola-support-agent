@@ -1,0 +1,36 @@
+# Task 3 - chunking strategies
+# module: python -m rag.chunking
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 0.1s
+######################################################################
+
+======================================================================
+TASK 3 - CHUNKING
+======================================================================
+documents loaded : 12
+fixed-size       : 400 chars, 80 char overlap -> 25 chunks
+sentence-based   : 2 sentences, 1 sentence overlap -> 37 chunks
+
+document                           sentences  fixed   sent
+----------------------------------------------------------
+business-hours-and-holidays                4      2      3
+communication-channels                     4      2      3
+escalation-matrix                          4      2      3
+feedback-collection                        4      2      3
+outage-communication                       4      3      3
+refund-and-compensation                    4      2      3
+repeat-complaint-handling                  4      2      3
+service-credit-policy                      4      2      3
+sla-by-severity                            5      2      4
+ticket-data-retention                      4      2      3
+ticket-priority-classification             4      2      3
+vip-customer-handling                      4      2      3
+
+fixed     chunk length: min=151 mean=377 max=444
+sentence  chunk length: min=268 mean=348 max=465
+
+Sample - escalation-matrix, fixed-size chunk 0:
+  Escalation Matrix. Escalation moves a ticket up three defined tiers: Tier 1 is the front-line support agent, Tier 2 is the city operations specialist, and Tier 3 is the regional operations manager. A ...
+
+Sample - escalation-matrix, sentence chunk 0:
+  Escalation Matrix. Escalation moves a ticket up three defined tiers: Tier 1 is the front-line support agent, Tier 2 is the city operations specialist, and Tier 3 is the regional operations manager. A ...

@@ -1,0 +1,51 @@
+# Task 1 - support ticket dataset
+# module: python -m dataset
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 0.1s
+######################################################################
+
+======================================================================
+TASK 1 - SUPPORT TICKET DATASET
+======================================================================
+seed                 : 20260908
+records generated    : 60
+resolution_time_hours: 1.1 - 72.0 h (design range 0.25 - 72 h)
+
+Count per category (each given category needs >=3)
+  Billing           20
+  Technical Issue   14
+  Account Access    12
+  Product Defect     4
+  General Inquiry   10
+
+Count per status (each given status needs >=1)
+  Open              11
+  In Progress       17
+  Escalated          6
+  Resolved          15
+  Closed            11
+
+Escalated: 10/60 = 16.7%  (target band 10-30%)
+
+Mean resolution_time_hours by category
+  Billing            16.1 h   (n=20)
+  Technical Issue    27.2 h   (n=14)
+  Account Access     10.1 h   (n=12)
+  Product Defect     41.1 h   (n=4)
+  General Inquiry     3.3 h   (n=10)
+
+First 10 records
+  record_id  category         status        hours  days   esc
+  -----------------------------------------------------------
+  OLA-0001   Billing          In Progress     7.8     5 False
+  OLA-0002   Technical Issue  In Progress    25.1     6 False
+  OLA-0003   General Inquiry  Closed          5.2    20 False
+  OLA-0004   Billing          Closed          9.8    20 False
+  OLA-0005   Billing          Resolved       10.0    26 False
+  OLA-0006   Billing          Closed          7.6    15  True
+  OLA-0007   General Inquiry  In Progress     2.8    12 False
+  OLA-0008   Product Defect   In Progress    43.1    12 False
+  OLA-0009   Account Access   In Progress     6.0    11 False
+  OLA-0010   Billing          Open            9.9     3 False
+
+VALIDATION PASSED - all structural thresholds met

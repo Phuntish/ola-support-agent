@@ -1,0 +1,43 @@
+# Task 2 - knowledge base inventory
+# module: python -m rag.kb_report
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 0.1s
+######################################################################
+
+======================================================================
+TASK 2 - KNOWLEDGE BASE INVENTORY
+======================================================================
+documents authored : 12  (brief requires >=12)
+sentence band      : 2-5 sentences per document
+
+doc_id                              sent  words  title
+----------------------------------------------------------------------------------------------------
+business-hours-and-holidays            4     91  Business Hours and Holiday Support Coverage
+communication-channels                 4    108  Customer Communication Channel Policy
+escalation-matrix                      4    118  Escalation Matrix
+feedback-collection                    4    107  Feedback Collection Process
+outage-communication                   4    125  Outage Communication Protocol
+refund-and-compensation                4    110  Refund and Compensation Policy
+repeat-complaint-handling              4    111  Repeat Complaint Handling
+service-credit-policy                  4    101  Service Credit Policy
+sla-by-severity                        5     98  Response and Resolution SLA by Severity
+ticket-data-retention                  4    114  Ticket Data Retention
+ticket-priority-classification         4    109  Ticket Priority Classification
+vip-customer-handling                  4    108  VIP Customer Handling
+
+Required topic coverage
+----------------------------------------------------------------------
+  [x] ticket-priority classification rules       -> ticket-priority-classification
+  [x] SLA-by-severity policy                     -> sla-by-severity
+  [x] escalation matrix                          -> escalation-matrix
+  [x] refund/compensation policy                 -> refund-and-compensation
+  [x] customer-communication-channel policy      -> communication-channels
+  [x] business-hours/holiday-support policy      -> business-hours-and-holidays
+  [x] repeat-complaint-handling policy           -> repeat-complaint-handling
+  [x] service-credit policy                      -> service-credit-policy
+  [x] feedback-collection process                -> feedback-collection
+  [x] VIP-customer handling policy               -> vip-customer-handling
+  [x] outage-communication protocol              -> outage-communication
+  [x] ticket data-retention policy               -> ticket-data-retention
+
+VALIDATION PASSED - 12 documents, all 12 required topics covered

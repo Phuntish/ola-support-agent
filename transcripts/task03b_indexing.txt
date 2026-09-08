@@ -1,0 +1,32 @@
+# Task 3 - embedding and Chroma collections
+# module: python -m rag.index
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 17.4s
+######################################################################
+
+======================================================================
+TASK 3 - EMBEDDING AND INDEXING
+======================================================================
+embedding model : sentence-transformers/all-MiniLM-L6-v2
+chroma path     : /Users/MK/Claude/ola-support-agent/.chroma
+documents       : 12
+collection ola_kb_fixed       strategy=fixed     chunks upserted=25   count()=25
+collection ola_kb_sentence    strategy=sentence  chunks upserted=37   count()=37
+
+Sanity check on both collections - query: 'how long do I have to wait for a reply on a P1 ticket'
+
+  [fixed]
+    1. sim=0.5934  doc=sla-by-severity
+       Response and Resolution SLA by Severity. Each priority band carries its own first-response target and its own ...
+    2. sim=0.5642  doc=sla-by-severity
+       Response and Resolution SLA by Severity. wered within 4 hours and resolved within 3 business days. P4 tickets ...
+    3. sim=0.4845  doc=business-hours-and-holidays
+       Business Hours and Holiday Support Coverage. ir response clock starts at the next opening time, except for P1 ...
+
+  [sentence]
+    1. sim=0.6696  doc=sla-by-severity
+       Response and Resolution SLA by Severity. P1 tickets must receive a first response within 15 minutes and a reso...
+    2. sim=0.6359  doc=sla-by-severity
+       Response and Resolution SLA by Severity. P2 tickets are answered within 1 hour and resolved within 24 hours, w...
+    3. sim=0.5935  doc=sla-by-severity
+       Response and Resolution SLA by Severity. Each priority band carries its own first-response target and its own ...

@@ -1,0 +1,113 @@
+# Task 5 - chunking comparison
+# module: python -m rag.eval_chunks
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 9.4s
+######################################################################
+
+======================================================================
+TASK 5 - CHUNKING STRATEGY COMPARISON (document-level)
+======================================================================
+queries      : 5
+scoring      : chunks mapped to parent doc, deduplicated, then scored
+k values     : [3, 5]  (k=3 is what generation actually uses)
+
+[fixed] chunks retrieved per query k=3
+----------------------------------------------------------------------
+
+  Q1: How quickly must we reply to a P2 billing complaint?
+      relevant docs  : ['sla-by-severity', 'ticket-priority-classification']
+      retrieved docs : ['sla-by-severity', 'repeat-complaint-handling']   (2 unique after dedup)
+      correct        : ['sla-by-severity']
+      precision = 1/2 = 0.500
+      recall    = 1/2 = 0.500
+      f1        = 0.500
+
+  Q2: A rider was charged twice for the same trip, what is the refund rule?
+      relevant docs  : ['refund-and-compensation']
+      retrieved docs : ['refund-and-compensation', 'repeat-complaint-handling']   (2 unique after dedup)
+      correct        : ['refund-and-compensation']
+      precision = 1/2 = 0.500
+      recall    = 1/1 = 1.000
+      f1        = 0.667
+
+  Q3: When should a support agent phone the customer instead of using chat?
+      relevant docs  : ['communication-channels']
+      retrieved docs : ['communication-channels', 'outage-communication']   (2 unique after dedup)
+      correct        : ['communication-channels']
+      precision = 1/2 = 0.500
+      recall    = 1/1 = 1.000
+      f1        = 0.667
+
+  Q4: What happens if the same customer complains about the same thing three times?
+      relevant docs  : ['escalation-matrix', 'repeat-complaint-handling']
+      retrieved docs : ['repeat-complaint-handling', 'vip-customer-handling']   (2 unique after dedup)
+      correct        : ['repeat-complaint-handling']
+      precision = 1/2 = 0.500
+      recall    = 1/2 = 0.500
+      f1        = 0.500
+
+  Q5: What do we tell riders while a city-wide outage is still going on?
+      relevant docs  : ['outage-communication']
+      retrieved docs : ['outage-communication', 'communication-channels']   (2 unique after dedup)
+      correct        : ['outage-communication']
+      precision = 1/2 = 0.500
+      recall    = 1/1 = 1.000
+      f1        = 0.667
+
+[sentence] chunks retrieved per query k=3
+----------------------------------------------------------------------
+
+  Q1: How quickly must we reply to a P2 billing complaint?
+      relevant docs  : ['sla-by-severity', 'ticket-priority-classification']
+      retrieved docs : ['sla-by-severity', 'repeat-complaint-handling']   (2 unique after dedup)
+      correct        : ['sla-by-severity']
+      precision = 1/2 = 0.500
+      recall    = 1/2 = 0.500
+      f1        = 0.500
+
+  Q2: A rider was charged twice for the same trip, what is the refund rule?
+      relevant docs  : ['refund-and-compensation']
+      retrieved docs : ['refund-and-compensation', 'repeat-complaint-handling']   (2 unique after dedup)
+      correct        : ['refund-and-compensation']
+      precision = 1/2 = 0.500
+      recall    = 1/1 = 1.000
+      f1        = 0.667
+
+  Q3: When should a support agent phone the customer instead of using chat?
+      relevant docs  : ['communication-channels']
+      retrieved docs : ['communication-channels']   (1 unique after dedup)
+      correct        : ['communication-channels']
+      precision = 1/1 = 1.000
+      recall    = 1/1 = 1.000
+      f1        = 1.000
+
+  Q4: What happens if the same customer complains about the same thing three times?
+      relevant docs  : ['escalation-matrix', 'repeat-complaint-handling']
+      retrieved docs : ['repeat-complaint-handling']   (1 unique after dedup)
+      correct        : ['repeat-complaint-handling']
+      precision = 1/1 = 1.000
+      recall    = 1/2 = 0.500
+      f1        = 0.667
+
+  Q5: What do we tell riders while a city-wide outage is still going on?
+      relevant docs  : ['outage-communication']
+      retrieved docs : ['outage-communication']   (1 unique after dedup)
+      correct        : ['outage-communication']
+      precision = 1/1 = 1.000
+      recall    = 1/1 = 1.000
+      f1        = 1.000
+
+======================================================================
+SUMMARY (macro-average across the 5 queries)
+======================================================================
+  strategy       k  precision   recall       f1
+  --------------------------------------------
+  fixed          3      0.500    0.800    0.600
+  sentence       3      0.800    0.800    0.767
+  fixed          5      0.433    0.900    0.580
+  sentence       5      0.467    0.800    0.580
+
+======================================================================
+RECOMMENDATION
+======================================================================
+At k=3, the setting the generator actually runs at, the two strategies tie on recall (0.800 for sentence, 0.800 for fixed) but not on precision: sentence-based scores 0.800 against fixed-size's 0.500, giving F1 0.767 versus 0.600. The per-query detail shows why. Fixed-size windows produce only about two chunks per document on a knowledge base of four-sentence policies, so a top-3 request always has to reach into a second document and precision is pinned at exactly 0.500 on all five queries, whereas sentence groups give roughly three chunks per document and can satisfy top-3 from the correct policy alone, hitting precision 1.000 on three of the five. I would deploy the sentence-based collection: recall is no worse, and because the generator feeds retrieved sentences straight into the answer, every spurious document is a chance for an off-topic sentence to appear in a customer-facing reply. Raising fixed-size to k=5 buys recall 0.900 but costs precision 0.433, which is the wrong trade here.
