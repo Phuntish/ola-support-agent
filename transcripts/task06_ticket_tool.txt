@@ -1,0 +1,66 @@
+# Task 6 - ticket lookup and escalation score
+# command: python -m tools.ticket_status
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 0.1s
+######################################################################
+
+======================================================================
+TASK 6 - TICKET LOOKUP AND ESCALATION SCORE
+======================================================================
+Formula
+  escalation_score = 0.55 * escalated + 0.45 * min(days_since_created / 30, 1)
+  range [0, 1]: fresh and unflagged = 0.0, flagged and 30 days old = 1.0
+
+Threshold, derived from this dataset
+  p80 of days_since_created over 60 tickets = 20.20 days
+  score of an unflagged ticket at that age  = 0.45 * 20.20/30 = 0.303
+  ESCALATION_THRESHOLD = 0.303
+
+What that threshold actually selects
+  score range across the dataset : 0.0000 - 0.9250
+  lowest score of a flagged ticket : 0.5950
+  highest score of an unflagged one: 0.4350
+  tickets at or above threshold  : 19/60 = 31.7%
+    - carrying escalated=True    : 10
+    - stale but never escalated  : 9   <- what a bare boolean OR would miss
+
+Sample lookups
+----------------------------------------------------------------------
+
+  check_support_ticket_status('OLA-0006')
+      record_id                OLA-0006
+      category                 Billing
+      status                   Closed
+      resolution_time_hours    7.6
+      escalation_score         0.775
+      escalate_recommended     True
+      escalation_threshold     0.303
+      days_since_created       15
+      escalated_flag           True
+
+  check_support_ticket_status('OLA-0005')
+      record_id                OLA-0005
+      category                 Billing
+      status                   Resolved
+      resolution_time_hours    10.0
+      escalation_score         0.39
+      escalate_recommended     True
+      escalation_threshold     0.303
+      days_since_created       26
+      escalated_flag           False
+
+  check_support_ticket_status('OLA-0010')
+      record_id                OLA-0010
+      category                 Billing
+      status                   Open
+      resolution_time_hours    9.9
+      escalation_score         0.045
+      escalate_recommended     False
+      escalation_threshold     0.303
+      days_since_created       3
+      escalated_flag           False
+
+  check_support_ticket_status('OLA-9999')
+      record_id                OLA-9999
+      error                    not_found
+      message                  No support ticket matches 'OLA-9999'.
