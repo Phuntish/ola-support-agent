@@ -1,0 +1,47 @@
+# Task 9 - structured response schema
+# command: python -m crew.schema
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 0.3s
+######################################################################
+
+======================================================================
+TASK 9 - STRUCTURED RESPONSE SCHEMA
+======================================================================
+Every crew response is parsed into SupportResponse before anything
+downstream is allowed to touch it. Fields:
+  query                  <class 'str'>                      required
+  answer                 <class 'str'>                      required
+  sources                list[str]                          optional
+  retrieval_similarity   <class 'float'>                    required
+  refused                <class 'bool'>                     optional
+  ticket                 __main__.TicketSummary | None      optional
+  guardrails_triggered   list[str]                          optional
+  context                list[str]                          optional
+
+extra='forbid', so an unexpected key is an error rather than silently ignored.
+
+----------------------------------------------------------------------
+ACCEPTED - a well-formed crew response
+----------------------------------------------------------------------
+  parsed as SupportResponse
+  ticket.escalation_score = 0.775
+
+----------------------------------------------------------------------
+REJECTED - each of these raises instead of reaching a customer
+----------------------------------------------------------------------
+  [rejected] escalation_score above 1.0
+             less_than_equal: Input should be less than or equal to 1 at ('ticket', 'escalation_score')
+  [rejected] similarity outside [0,1]
+             less_than_equal: Input should be less than or equal to 1 at ('retrieval_similarity',)
+  [rejected] empty answer
+             string_too_short: String should have at least 1 character at ('answer',)
+  [rejected] CrewAI ReAct template leaked into the answer
+             value_error: Value error, answer contains CrewAI ReAct template text, not a real result at ('answer',)
+  [rejected] unexpected key
+             extra_forbidden: Extra inputs are not permitted at ('internal_debug',)
+  [rejected] no JSON object at all
+             missing: Field required at ('answer',)
+
+The template-text check exists because of the known CrewAI failure mode: if a
+parser ever matches the ReAct system prompt instead of a real tool result, the
+placeholder is caught here rather than being shown as an answer.

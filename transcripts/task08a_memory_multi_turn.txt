@@ -1,0 +1,42 @@
+# Task 8 - memory carried across turns
+# command: python -m crew.memory multi
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 10.8s
+######################################################################
+
+======================================================================
+TASK 8 - SESSION MEMORY, STATE CARRIED ACROSS TURNS
+======================================================================
+session_id: rider-8821
+
+[turn 1] Q: What is the refund rule when a rider is charged twice for one trip?
+      history turns available : 0
+      resolved using history  : False
+      query sent to the crew  : What is the refund rule when a rider is charged twice for one trip?
+      A: Refunds are issued when a rider was charged for a trip that did not take place, was charged twice for one trip, or was billed a toll or surcharge that does not apply on the route taken. Approved refunds return to the original payment method within 5 to 7 working days, or immediat
+
+[turn 2] Q: How long does that take to reach the original payment method?
+      history turns available : 2
+      resolved using history  : True
+      query sent to the crew  : What is the refund rule when a rider is charged twice for one trip? How long does that take to reach the original payment method?
+      A: Refunds are issued when a rider was charged for a trip that did not take place, was charged twice for one trip, or was billed a toll or surcharge that does not apply on the route taken. Approved refunds return to the original payment method within 5 to 7 working days, or immediat
+
+[turn 3] Q: And is there any compensation on top of it?
+      history turns available : 4
+      resolved using history  : True
+      query sent to the crew  : How long does that take to reach the original payment method? And is there any compensation on top of it?
+      A: Approved refunds return to the original payment method within 5 to 7 working days, or immediately to the Ola Money wallet if the rider prefers the faster route. A front-line agent may approve a refund up to 1,000 rupees without a second signature; anything above that needs city-o
+
+----------------------------------------------------------------------
+History for rider-8821 now holds 6 messages:
+  human  What is the refund rule when a rider is charged twice for one trip?
+  ai     Refunds are issued when a rider was charged for a trip that did not take place, was charge
+  human  How long does that take to reach the original payment method?
+  ai     Refunds are issued when a rider was charged for a trip that did not take place, was charge
+  human  And is there any compensation on top of it?
+  ai     Approved refunds return to the original payment method within 5 to 7 working days, or imme
+
+Turns 2 and 3 only resolve because turn 1 is still in this session's history.
+
+--- stderr ---
+<frozen runpy>:88: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.

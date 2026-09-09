@@ -1,0 +1,56 @@
+# Task 7 - CrewAI crew with tool use
+# command: python -m crew.crew
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 14.0s
+######################################################################
+
+======================================================================
+TASK 7 - CREWAI CREW WITH TOOL USE
+======================================================================
+agents:
+  1. Policy Retrieval Specialist      tool: rag_lookup
+  2. Ticket Lookup Specialist         tool: check_support_ticket_status
+  3. Support Response Composer        tools: none (works only from the other two)
+
+run via Crew.kickoff(), process=sequential, MOCK_LLM=1
+
+----------------------------------------------------------------------
+RAG tool path: What is the refund rule when a rider is charged twice for one trip?
+----------------------------------------------------------------------
+  tools actually invoked : ['rag_lookup']
+  mock LLM calls         : 3
+  schema validation      : SupportResponse OK (Task 9)
+  sources                : ['refund-and-compensation', 'repeat-complaint-handling']
+  retrieval similarity   : 0.629
+  ticket                 : none (question named no record_id)
+  answer:
+      Refunds are issued when a rider was charged for a trip that did not take place, was charged twice for one trip, or was billed a toll or surcharge that does not apply on the route taken. Approved refunds return to the original payment method within 5 to 7 working days, or immediately to the Ola Money wallet if the rider prefers the faster route. A complaint counts as a repeat when the same customer raises the same und
+
+----------------------------------------------------------------------
+Lookup tool path: What is the status of ticket OLA-0006 and should we escalate it?
+----------------------------------------------------------------------
+  tools actually invoked : ['rag_lookup', 'check_support_ticket_status']
+  mock LLM calls         : 5
+  schema validation      : SupportResponse OK (Task 9)
+  sources                : ['escalation-matrix', 'sla-by-severity']
+  retrieval similarity   : 0.4824
+  ticket                 : OLA-0006 status=Closed score=0.775 escalate=True
+  answer:
+      A ticket escalates from Tier 1 to Tier 2 when it has been open past half its resolution SLA, when the customer has contacted us three or more times on the same issue, or when the resolution requires a fare adjustment above 500 rupees. P4 tickets carry a 1 business-day response target and no fixed resolution deadline. A ticket that breaches either clock is flagged automatically in the queue dashboard and counts agains
+
+----------------------------------------------------------------------
+Both tools: Ticket OLA-0005 has been open a while - what does the escalation policy say?
+----------------------------------------------------------------------
+  tools actually invoked : ['rag_lookup', 'check_support_ticket_status']
+  mock LLM calls         : 5
+  schema validation      : SupportResponse OK (Task 9)
+  sources                : ['escalation-matrix', 'repeat-complaint-handling']
+  retrieval similarity   : 0.5394
+  ticket                 : OLA-0005 status=Resolved score=0.39 escalate=True
+  answer:
+      A ticket escalates from Tier 1 to Tier 2 when it has been open past half its resolution SLA, when the customer has contacted us three or more times on the same issue, or when the resolution requires a fare adjustment above 500 rupees. Escalation moves a ticket up three defined tiers: Tier 1 is the front-line support agent, Tier 2 is the city operations specialist, and Tier 3 is the regional operations manager. On a t
+
+======================================================================
+Note on the tool names: the retrieval tool is called `rag_lookup`, which
+contains the substring 'lookup'. Dispatch is done on each tool's declared
+argument schema (record_id vs query), so the name never enters into it.

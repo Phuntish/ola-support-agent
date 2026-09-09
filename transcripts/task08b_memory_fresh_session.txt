@@ -1,0 +1,28 @@
+# Task 8 - fresh session, state absent
+# command: python -m crew.memory fresh
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 10.9s
+######################################################################
+
+======================================================================
+TASK 8 - FRESH SESSION, STATE CORRECTLY ABSENT
+======================================================================
+session_id: rider-9002-fresh  (never used before, history starts empty)
+
+messages in history before the first turn: 0
+
+[turn 1] Q: How long does that take to reach the original payment method?
+      history turns available : 0
+      resolved using history  : False
+      query sent to the crew  : How long does that take to reach the original payment method?
+      A: Approved refunds return to the original payment method within 5 to 7 working days, or immediately to the Ola Money wallet if the rider prefers the faster route. The standard credit is 100 rupees, rising to 250 rupees where the customer was left waiting more than 30 minutes. Servi
+
+----------------------------------------------------------------------
+There is no previous turn to resolve 'that' against, so the question goes to
+the crew exactly as typed. The state from the other session is not visible
+here, which is the point: sessions do not leak into each other.
+
+messages visible from session 'rider-8821' in this run: 0
+
+--- stderr ---
+<frozen runpy>:88: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
