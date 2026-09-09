@@ -1,5 +1,5 @@
 # Task 2 - knowledge base inventory
-# module: python -m rag.kb_report
+# command: python -m rag.kb_report
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
 # exit code: 0, wall clock: 0.1s
 ######################################################################

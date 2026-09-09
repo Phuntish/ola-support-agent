@@ -18,14 +18,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 TRANSCRIPTS = ROOT / "transcripts"
 
-# (transcript name, module to run with -m, human label)
-STEPS: list[tuple[str, str, str]] = [
-    ("task01_dataset", "dataset", "Task 1 - support ticket dataset"),
-    ("task02_knowledge_base", "rag.kb_report", "Task 2 - knowledge base inventory"),
-    ("task03a_chunking", "rag.chunking", "Task 3 - chunking strategies"),
-    ("task03b_indexing", "rag.index", "Task 3 - embedding and Chroma collections"),
-    ("task04_grounded_generation", "rag.generate", "Task 4 - grounded generation"),
-    ("task05_chunking_eval", "rag.eval_chunks", "Task 5 - chunking comparison"),
+# (transcript name, argv for python -m, human label)
+STEPS: list[tuple[str, list[str], str]] = [
+    # Part 1 - dataset and RAG core
+    ("task01_dataset", ["dataset"], "Task 1 - support ticket dataset"),
+    ("task02_knowledge_base", ["rag.kb_report"], "Task 2 - knowledge base inventory"),
+    ("task03a_chunking", ["rag.chunking"], "Task 3 - chunking strategies"),
+    ("task03b_indexing", ["rag.index"], "Task 3 - embedding and Chroma collections"),
+    ("task04_grounded_generation", ["rag.generate"], "Task 4 - grounded generation"),
+    ("task05_chunking_eval", ["rag.eval_chunks"], "Task 5 - chunking comparison"),
+    # Part 2 - orchestration, memory, schema, guardrails
+    ("task06_ticket_tool", ["tools.ticket_status"], "Task 6 - ticket lookup and escalation score"),
+    ("task07_crew_tool_use", ["crew.crew"], "Task 7 - CrewAI crew with tool use"),
+    ("task08a_memory_multi_turn", ["crew.memory", "multi"], "Task 8 - memory carried across turns"),
+    ("task08b_memory_fresh_session", ["crew.memory", "fresh"], "Task 8 - fresh session, state absent"),
+    ("task09_schema_validation", ["crew.schema"], "Task 9 - structured response schema"),
+    ("task10a_guardrail_pii", ["guardrails.pii"], "Task 10 - PII masking"),
+    ("task10b_guardrail_injection", ["guardrails.injection"], "Task 10 - prompt injection"),
+    ("task10c_guardrail_groundedness", ["guardrails.groundedness"], "Task 10 - groundedness"),
+    ("task10d_guardrails_end_to_end", ["guardrails.pipeline"], "Task 10 - all three on the live path"),
 ]
 
 
@@ -35,18 +46,19 @@ def child_env() -> dict[str, str]:
     env.setdefault("MOCK_LLM", "1")
     env.setdefault("CREWAI_DISABLE_TELEMETRY", "true")
     env.setdefault("OTEL_SDK_DISABLED", "true")
+    env.setdefault("CREWAI_TRACING_ENABLED", "false")
     env.setdefault("ANONYMIZED_TELEMETRY", "False")
     env.setdefault("TOKENIZERS_PARALLELISM", "false")
     env["PYTHONPATH"] = str(ROOT)
     return env
 
 
-def run_step(name: str, module: str, label: str) -> bool:
+def run_step(name: str, argv: list[str], label: str) -> bool:
     target = TRANSCRIPTS / f"{name}.txt"
     started = time.perf_counter()
 
     proc = subprocess.run(
-        [sys.executable, "-m", module],
+        [sys.executable, "-m", *argv],
         cwd=ROOT,
         env=child_env(),
         capture_output=True,
@@ -56,7 +68,7 @@ def run_step(name: str, module: str, label: str) -> bool:
 
     header = (
         f"# {label}\n"
-        f"# module: python -m {module}\n"
+        f"# command: python -m {' '.join(argv)}\n"
         f"# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls\n"
         f"# exit code: {proc.returncode}, wall clock: {elapsed:.1f}s\n"
         + "#" * 70

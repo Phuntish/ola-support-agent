@@ -1,5 +1,5 @@
 # Task 3 - chunking strategies
-# module: python -m rag.chunking
+# command: python -m rag.chunking
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
 # exit code: 0, wall clock: 0.1s
 ######################################################################

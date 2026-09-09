@@ -7,9 +7,8 @@ base, looks up individual support tickets from a generated dataset, remembers a
 conversation, is guarded against misuse, and has its answers reviewed by a second agent
 team before they reach the user.
 
-> Build status: **Part 1 complete** (dataset, knowledge base, chunking, indexing, grounded
-> generation, chunking evaluation). Parts 2-4 are in progress and their sections below are
-> marked accordingly.
+> Build status: **Parts 1 and 2 complete**. Parts 3-4 are in progress and their sections
+> below are marked accordingly.
 
 ## Everything runs with zero API keys and zero network
 
@@ -190,7 +189,117 @@ off-topic sentence to appear in a customer-facing reply. Raising fixed-size to k
 
 ## Part 2 - CrewAI orchestration
 
-_In progress._
+### Task 6: ticket lookup and escalation score (`tools/ticket_status.py`)
+
+```
+escalation_score = 0.55 * escalated + 0.45 * min(days_since_created / 30, 1)
+```
+
+Range `[0, 1]`. The flag is weighted higher because an explicit escalation is a human
+decision, but the age term is weighted enough that a ticket can cross the line on staleness
+alone — which is the case a bare boolean OR misses entirely.
+
+**Threshold: 0.3030, derived from the dataset rather than typed in.** The 80th percentile of
+`days_since_created` across the 60 generated tickets is 20.2 days, and an *unflagged* ticket
+at that age scores `0.45 × 20.2/30 = 0.3030`. `ESCALATION_THRESHOLD` is computed at import
+time from `SUPPORT_TICKETS`, so it moves if the dataset does.
+
+What that selects (`transcripts/task06_ticket_tool.txt`):
+
+| | |
+| --- | --- |
+| Score range across dataset | 0.0000 – 0.9250 |
+| Lowest score of a flagged ticket | 0.5950 |
+| Highest score of an unflagged ticket | 0.4350 |
+| At or above threshold | 19/60 = 31.7% |
+| — carrying `escalated=True` | 10 |
+| — **stale but never escalated** | **9** |
+
+Those 9 are the point of the design. `OLA-0005` is Resolved, never escalated, 26 days old, and
+scores 0.390 — flagged on age alone.
+
+### Task 7: the crew (`crew/agents.py`, `crew/crew.py`)
+
+Three agents run sequentially via `Crew.kickoff()`:
+
+| Agent | Tool |
+| --- | --- |
+| Policy Retrieval Specialist | `rag_lookup` |
+| Ticket Lookup Specialist | `check_support_ticket_status` |
+| Support Response Composer | none — works only from the other two |
+
+The lookup task is only added when the question actually names a record id, so a policy-only
+question doesn't hand the Lookup Agent an id it doesn't have. Transcript shows the RAG tool
+alone on one query and both tools on another.
+
+**On the two documented CrewAI pitfalls.** Both were resolved by dumping the actual prompts
+CrewAI sends to a custom `BaseLLM` rather than working from assumption:
+
+1. The ReAct system prompt genuinely does contain the literal line `Observation: the result of
+   the action` as part of its format instructions. `latest_observation()` in
+   `llm/mock_llm.py` therefore reads **only assistant turns**, which is the sole place CrewAI
+   writes a real tool result.
+2. CrewAI does **not** populate the `tools` argument for a custom `BaseLLM` — it arrives as
+   `None`, and the tool schemas are embedded in the system prompt text instead. So
+   `parse_tool_schemas()` recovers them from that prompt, and `build_tool_input()` dispatches
+   on the declared argument schema (`record_id` vs `query`). The retrieval tool is named
+   `rag_lookup` specifically so that any name-matching dispatcher would break.
+
+A third, undocumented one: CrewAI 1.9 asks an **interactive** yes/no about execution tracing on
+first run, which would hang an unattended `run_all.py`. `CREWAI_TRACING_ENABLED=false` is set
+before the import.
+
+### Task 8: session memory (`crew/memory.py`)
+
+`InMemoryChatMessageHistory` + `RunnableWithMessageHistory`, one history per session id.
+The `LangChainDeprecationWarning` is expected and left in the transcript.
+
+Memory does real work here. A follow-up like *"how long does that take?"* has no retrievable
+subject, so the chain rewrites it against the previous turn before the crew sees it:
+
+- `task08a_memory_multi_turn.txt` — turn 2 reports `resolved using history: True` and the
+  query sent to the crew is the merged question. History ends holding 6 messages.
+- `task08b_memory_fresh_session.txt` — the *same* follow-up asked cold reports
+  `history turns available: 0`, `resolved using history: False`, and drifts off-topic into
+  service credits. Messages visible from the other session: 0.
+
+### Task 9: structured output (`crew/schema.py`)
+
+`SupportResponse` with `extra="forbid"`. Every crew result goes through
+`validate_crew_output()` — there is no other way out of the crew. Six rejection cases are
+demonstrated, including a validator that catches CrewAI's ReAct template text leaking into an
+answer.
+
+### Task 10: guardrails (`guardrails/`)
+
+Each fires on a deliberate test; `run_guarded()` in `crew/crew.py` is the live path, ordered
+`detect_injection → mask_pii → crew → check_groundedness`.
+
+- **PII masking** — Indian mobile format, `+91` optional, spaces/hyphens tolerated. 8/8 cases,
+  including negatives that must *not* match: `OLA-0006`, `1,000 rupees`, `15 minutes`.
+  Full redaction rather than partial: tickets are retained 24 months and the last four digits
+  still identify someone.
+- **Prompt injection** — 6 labelled patterns, 10/10 cases. Includes the near-miss
+  *"Ignore the driver's comment, I just want to know the SLA"*, correctly allowed through.
+  End-to-end, a blocked request records **0 LLM calls** — the crew never starts.
+- **Groundedness** — sentence-level cosine against retrieved context, threshold **0.95**.
+
+The groundedness threshold needed a design change once measured, and the numbers are worth
+stating. Scoring three groups against the same context:
+
+| Group | Range |
+| --- | --- |
+| Copied verbatim from context | 1.0000 – 1.0000 |
+| True, but reworded | 0.3933 – 0.7467 |
+| Fabricated | 0.6164 – 0.7776 |
+
+The last two **overlap** — a false claim reached 0.7776 while a true restatement sank to
+0.3933 — so no threshold anywhere separates truth from falsehood. This check therefore does
+not attempt to judge truth. It is a **provenance** test: copied text scores exactly 1.0,
+anything written elsewhere tops out at 0.7776, and 0.95 sits in that gap with 0.05 margin
+below and 0.17 above. Since the generator is extractive, every legitimate sentence is a
+verbatim copy. The accepted limitation is that a correct paraphrase is refused too; with no
+model available under `MOCK_LLM` to judge entailment, refusing is the safe direction to fail.
 
 ## Part 3 - Evaluation, observability, FastAPI
 
@@ -210,4 +319,13 @@ _In progress._
 | 3 - Embedding and indexing | `rag/index.py` | `transcripts/task03b_indexing.txt` |
 | 4 - Grounded generation | `rag/generate.py` | `transcripts/task04_grounded_generation.txt` |
 | 5 - Chunking comparison | `rag/eval_chunks.py` | `transcripts/task05_chunking_eval.txt` |
-| 6-16 | _in progress_ | |
+| 6 - Ticket tool + escalation score | `tools/ticket_status.py` | `transcripts/task06_ticket_tool.txt` |
+| 7 - CrewAI crew with tools | `crew/agents.py`, `crew/crew.py`, `llm/mock_llm.py`, `tools/rag_tool.py` | `transcripts/task07_crew_tool_use.txt` |
+| 8 - Memory carried across turns | `crew/memory.py` | `transcripts/task08a_memory_multi_turn.txt` |
+| 8 - Fresh session, state absent | `crew/memory.py` | `transcripts/task08b_memory_fresh_session.txt` |
+| 9 - Structured output schema | `crew/schema.py` | `transcripts/task09_schema_validation.txt` |
+| 10 - PII masking | `guardrails/pii.py` | `transcripts/task10a_guardrail_pii.txt` |
+| 10 - Prompt injection | `guardrails/injection.py` | `transcripts/task10b_guardrail_injection.txt` |
+| 10 - Groundedness | `guardrails/groundedness.py` | `transcripts/task10c_guardrail_groundedness.txt` |
+| 10 - All three, live path | `guardrails/pipeline.py`, `crew/crew.py` | `transcripts/task10d_guardrails_end_to_end.txt` |
+| 11-16 | _in progress_ | |

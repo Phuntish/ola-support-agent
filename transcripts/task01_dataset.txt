@@ -1,5 +1,5 @@
 # Task 1 - support ticket dataset
-# module: python -m dataset
+# command: python -m dataset
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
 # exit code: 0, wall clock: 0.1s
 ######################################################################
