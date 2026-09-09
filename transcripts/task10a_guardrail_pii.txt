@@ -1,0 +1,60 @@
+# Task 10 - PII masking
+# command: python -m guardrails.pii
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 0.1s
+######################################################################
+
+======================================================================
+TASK 10a - PII MASKING GUARDRAIL
+======================================================================
+pattern: (?<!\d)(?:\+?91[\s\-]?)?[6-9]\d{4}[\s\-]?\d{5}(?!\d)
+mask   : [PHONE_REDACTED]
+scope  : phone numbers only. Names, addresses and payment details have no
+         fixed format to match keylessly and are out of scope by design.
+
+[ok ] expected fire=True  got=True 
+       in : My number is 9876543210, please call me back.
+       out: My number is [PHONE_REDACTED], please call me back.
+       matched: ['9876543210']
+
+[ok ] expected fire=True  got=True 
+       in : Call me on +91 98765 43210 after 6pm.
+       out: Call me on [PHONE_REDACTED] after 6pm.
+       matched: ['+91 98765 43210']
+
+[ok ] expected fire=True  got=True 
+       in : Reach me at +91-9123456789 or the app.
+       out: Reach me at [PHONE_REDACTED] or the app.
+       matched: ['+91-9123456789']
+
+[ok ] expected fire=True  got=True 
+       in : Driver rang from 7012345678 and then hung up.
+       out: Driver rang from [PHONE_REDACTED] and then hung up.
+       matched: ['7012345678']
+
+[ok ] expected fire=False got=False
+       in : What is the status of ticket OLA-0006?
+       out: What is the status of ticket OLA-0006?
+
+[ok ] expected fire=False got=False
+       in : A refund of 1,000 rupees was approved on 15 September.
+       out: A refund of 1,000 rupees was approved on 15 September.
+
+[ok ] expected fire=False got=False
+       in : P1 tickets get a response in 15 minutes and resolution in 4 hours.
+       out: P1 tickets get a response in 15 minutes and resolution in 4 hours.
+
+[ok ] expected fire=False got=False
+       in : Service credits expire 90 days after issue.
+       out: Service credits expire 90 days after issue.
+
+----------------------------------------------------------------------
+DELIBERATE TEST CASE - guardrail firing on a real request
+----------------------------------------------------------------------
+  raw request    : I was double charged on my last trip, my number is +91 98765 43210, ticket OLA-0006.
+  what the model sees: I was double charged on my last trip, my number is [PHONE_REDACTED], ticket OLA-0006.
+  what the log gets  : I was double charged on my last trip, my number is [PHONE_REDACTED], ticket OLA-0006.
+  guardrail fired    : True  (matched ['+91 98765 43210'])
+  ticket id survives : True
+
+8/8 pattern cases behaved as expected

@@ -1,0 +1,53 @@
+# Task 10 - groundedness
+# command: python -m guardrails.groundedness
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 7.8s
+######################################################################
+
+======================================================================
+TASK 10c - OUTPUT-SIDE GROUNDEDNESS GUARDRAIL
+======================================================================
+question: A rider was charged twice for the same trip, what is the refund rule?
+retrieved 2 chunks from ['refund-and-compensation', 'repeat-complaint-handling']
+
+----------------------------------------------------------------------
+CASE 1 - the real generated answer (should pass)
+----------------------------------------------------------------------
+  1.0000  Refunds are issued when a rider was charged for a trip that did not take place, was char
+  1.0000  Approved refunds return to the original payment method within 5 to 7 working days, or im
+  1.0000  The second ticket must be linked to the original rather than handled as a fresh case, an
+  -> grounded=True, worst sentence score 1.0000
+
+----------------------------------------------------------------------
+CASE 2 - DELIBERATE TEST: an ungrounded claim spliced into the answer
+----------------------------------------------------------------------
+  injected sentence: Ola refunds every disputed fare automatically within 30 minutes and adds a 5000 rupee apology bonus to the rider's wallet.
+
+  1.0000  Refunds are issued when a rider was charged for a trip that did not take place, was char
+  1.0000  Approved refunds return to the original payment method within 5 to 7 working days, or im
+  1.0000  The second ticket must be linked to the original rather than handled as a fresh case, an
+  0.7374  Ola refunds every disputed fare automatically within 30 minutes and adds a 5000 rupee ap  <-- UNSUPPORTED
+
+  -> grounded=False
+  -> guardrail fired on 1 sentence(s)
+  -> reply shown to customer: I can't stand behind that answer. Part of it is not supported by the Ola support policy documents retrieved for this question, so it has been withheld rather than shown to the customer.
+
+----------------------------------------------------------------------
+THRESHOLD CALIBRATION - three groups scored against the same context
+----------------------------------------------------------------------
+  copied verbatim from context   : 1.0000 - 1.0000
+  true, but reworded             : 0.3933 - 0.7467
+  fabricated                     : 0.6164 - 0.7776
+
+  The reworded and fabricated groups overlap: a false claim reached
+  0.7776 while a true restatement sank to 0.3933. No threshold
+  separates them, so this check does not attempt to judge truth.
+
+  It tests provenance instead. Copied text scores exactly 1.0 and everything
+  written outside the context tops out at 0.7776, so:
+    SUPPORT_THRESHOLD = 0.95
+    margin below it   : 0.0500 from copied text
+    margin above it   : 0.1724 from anything else
+
+  Accepted limitation: a correct paraphrase is refused too. With no model
+  available under MOCK_LLM to judge entailment, refusing is the safe direction.
