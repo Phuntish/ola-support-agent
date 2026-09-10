@@ -37,6 +37,9 @@ STEPS: list[tuple[str, list[str], str]] = [
     ("task10b_guardrail_injection", ["guardrails.injection"], "Task 10 - prompt injection"),
     ("task10c_guardrail_groundedness", ["guardrails.groundedness"], "Task 10 - groundedness"),
     ("task10d_guardrails_end_to_end", ["guardrails.pipeline"], "Task 10 - all three on the live path"),
+    # Part 3 - API, observability, evaluation
+    ("task11_api_endpoints", ["api.demo", "endpoints"], "Task 11 - FastAPI endpoints and WebSocket"),
+    ("task12_logging", ["api.demo", "logging"], "Task 12 - JSON-Lines logging and PII audit"),
 ]
 
 

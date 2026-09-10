@@ -1,0 +1,97 @@
+# Task 11 - FastAPI endpoints and WebSocket
+# command: python -m api.demo endpoints
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 18.3s
+######################################################################
+
+======================================================================
+TASK 11 - FASTAPI ENDPOINTS
+======================================================================
+routes:
+  GET,HEAD /openapi.json
+  GET,HEAD /docs
+  GET,HEAD /docs/oauth2-redirect
+  GET,HEAD /redoc
+  GET      /health
+  POST     /ask
+  POST     /add-document
+  WS       /ws/chat
+
+----------------------------------------------------------------------
+1. GET /health
+----------------------------------------------------------------------
+  GET /health
+    HTTP 200   x-trace-id: 7d4123fbb6bf4e38
+    body: {'status': 'ok', 'mode': 'MOCK_LLM', 'active_websockets': '0'}
+
+----------------------------------------------------------------------
+2. POST /ask - policy question
+----------------------------------------------------------------------
+  POST /ask
+    HTTP 200   x-trace-id: fb5d0c26d1894ba1
+    sources : ['ticket-data-retention', 'business-hours-and-holidays']
+    refused : False
+    answer  : Tickets connected to a safety incident, a regulatory request, or active litigation are placed under a legal hold and are exempt from the automatic deletion until the hold is lifted
+
+----------------------------------------------------------------------
+3. POST /ask - ticket lookup, validated against the Pydantic schema
+----------------------------------------------------------------------
+  POST /ask
+    HTTP 200   x-trace-id: f0cb5698ed4a4a44
+    tools_used : ['rag_lookup', 'check_support_ticket_status']
+    ticket     : {'record_id': 'OLA-0006', 'status': 'Closed', 'resolution_time_hours': 7.6, 'escalation_score': 0.775, 'escalate_recommended': True, 'escalation_threshold': 0.303}
+
+----------------------------------------------------------------------
+4. POST /ask - request body fails validation
+----------------------------------------------------------------------
+  POST /ask with empty question
+    HTTP 422   x-trace-id: eed67996f7764661
+    detail: String should have at least 1 character
+
+----------------------------------------------------------------------
+5. POST /add-document - new policy into both collections
+----------------------------------------------------------------------
+  POST /add-document
+    HTTP 200   x-trace-id: d862d874b9fc4ad4
+    body: {'doc_id': 'lost-property-policy', 'chunks_indexed': {'fixed': 1, 'sentence': 2}, 'message': 'Indexed lost-property-policy into both collections.'}
+
+    the new document is immediately retrievable:
+      sources: ['lost-property-policy']
+      answer : The rider is contacted through the app within 24 hours of the driver reporting the item. Unclaimed items are donated after the holding period ends. Items left in a vehicle are logg
+
+======================================================================
+TASK 11 - WEBSOCKET, CLIENT DISCONNECTS MID-CONVERSATION
+======================================================================
+Two clients connect. Client A drops without saying goodbye, part way through
+the conversation. Client B must be unaffected and the server must stay up.
+
+  client B connected and idle
+  client A connected
+  client A turn 1: A service credit is a non-cash amount added to the customer's Ola Money wallet to acknowledge a service failur
+    sources: ['service-credit-policy']
+  client A turn 2: The standard credit is 100 rupees, rising to 250 rupees where the customer was left waiting more than 30 minut
+
+  client A now vanishes mid-conversation (no close handshake)
+  -> server raised WebSocketDisconnect in A's receive loop and caught it
+
+  client B carries on, on the same running server:
+  client B turn 1: When a platform component fails widely enough to affect bookings in a city, the incident commander declares an
+    sources: ['outage-communication']
+
+  client B turn 2 (injection attempt):
+    refused    : True
+    guardrails : ['injection:override_instructions', 'injection:exfiltrate_data']
+
+  both connections closed cleanly
+
+  server still healthy after the disconnect: {'status': 'ok', 'mode': 'MOCK_LLM', 'active_websockets': '0'}
+
+----------------------------------------------------------------------
+CLEANUP
+----------------------------------------------------------------------
+  rebuilt both collections from kb/ on disk: {'fixed': 25, 'sentence': 37}
+  lost-property-policy was a demo document and is no longer indexed.
+
+--- stderr ---
+/Users/MK/Claude/ola-support-agent/api/main.py:28: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
+  from crew.memory import ask as ask_with_memory
