@@ -17,7 +17,7 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass, field
 
-from rag.chunking import SENTENCE_STRATEGY, load_documents, split_sentences
+from rag.chunking import SENTENCE_STRATEGY, split_sentences
 from rag.index import DEFAULT_TOP_K, Hit, embed, retrieve
 
 # Measured on this KB with all-MiniLM-L6-v2 - see calibrate() output in
@@ -81,19 +81,19 @@ class GroundedAnswer:
         }
 
 
-def _document_titles() -> set[str]:
-    return {doc.title for doc in load_documents()}
+def _context_sentences(hits: list[Hit]) -> list[str]:
+    """Flatten retrieved chunks into unique sentences, dropping the title prefix.
 
-
-def _context_sentences(hits: list[Hit], titles: set[str]) -> list[str]:
-    """Flatten retrieved chunks into unique sentences, dropping the title prefix."""
+    Every chunk is built as "<title>. <body>" by rag.chunking, so the first
+    sentence is always the title and is skipped structurally. An earlier version
+    compared against titles read from kb/ on disk, which silently failed for
+    documents added at runtime through POST /add-document - their title is not in
+    any file, so it survived into the answer text.
+    """
     seen: set[str] = set()
     sentences: list[str] = []
     for hit in hits:
-        for sentence in split_sentences(hit.text):
-            stripped = sentence.rstrip(".").strip()
-            if stripped in titles:
-                continue
+        for sentence in split_sentences(hit.text)[1:]:
             if sentence in seen:
                 continue
             seen.add(sentence)
@@ -107,7 +107,7 @@ def compose_answer(query: str, hits: list[Hit]) -> str:
     Nothing is written here that did not come out of the retriever, which is what
     makes the output grounded by construction.
     """
-    sentences = _context_sentences(hits, _document_titles())
+    sentences = _context_sentences(hits)
     if not sentences:
         return REFUSAL_TEXT
 

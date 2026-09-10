@@ -93,11 +93,24 @@ def upsert_chunks(strategy: str, chunks: list[Chunk]) -> chromadb.Collection:
     return collection
 
 
-def build_indexes(documents: list[Document] | None = None) -> dict[str, int]:
-    """(Re)build both collections from the knowledge base. Returns chunk counts."""
+def build_indexes(documents: list[Document] | None = None, fresh: bool = True) -> dict[str, int]:
+    """(Re)build both collections from the knowledge base. Returns chunk counts.
+
+    `fresh` drops the collections first. upsert() alone would leave behind any
+    document added at runtime through POST /add-document, so a later evaluation
+    run would silently be scoring against a different knowledge base than the one
+    in kb/. Dropping first keeps every run reproducible from the files on disk.
+    """
     docs = load_documents() if documents is None else documents
+    client = get_client()
+
     counts: dict[str, int] = {}
     for strategy in (FIXED_STRATEGY, SENTENCE_STRATEGY):
+        if fresh:
+            try:
+                client.delete_collection(COLLECTION_NAMES[strategy])
+            except Exception:
+                pass  # nothing indexed yet on a first run
         chunks = chunk_documents(docs, strategy)
         upsert_chunks(strategy, chunks)
         counts[strategy] = len(chunks)
