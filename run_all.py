@@ -40,6 +40,8 @@ STEPS: list[tuple[str, list[str], str]] = [
     # Part 3 - API, observability, evaluation
     ("task11_api_endpoints", ["api.demo", "endpoints"], "Task 11 - FastAPI endpoints and WebSocket"),
     ("task12_logging", ["api.demo", "logging"], "Task 12 - JSON-Lines logging and PII audit"),
+    ("task13a_testset", ["evaluation.testset"], "Task 13 - the 15-query test set"),
+    ("task13b_judge_eval", ["evaluation.judge"], "Task 13 - LLM-as-judge scoring"),
 ]
 
 
