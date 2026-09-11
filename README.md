@@ -7,8 +7,7 @@ base, looks up individual support tickets from a generated dataset, remembers a
 conversation, is guarded against misuse, and has its answers reviewed by a second agent
 team before they reach the user.
 
-> Build status: **Parts 1 and 2 complete**. Parts 3-4 are in progress and their sections
-> below are marked accordingly.
+> Build status: **Parts 1, 2 and 3 complete**. Part 4 is in progress.
 
 ## Everything runs with zero API keys and zero network
 
@@ -303,7 +302,104 @@ model available under `MOCK_LLM` to judge entailment, refusing is the safe direc
 
 ## Part 3 - Evaluation, observability, FastAPI
 
-_In progress._
+### Task 11: the API (`api/main.py`)
+
+```bash
+.venv/bin/uvicorn api.main:app --reload
+```
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/health` | liveness + active WebSocket count |
+| `POST` | `/ask` | guarded crew answer; `AskRequest` → `AskResponse` |
+| `POST` | `/add-document` | index a new policy into **both** collections |
+| `WS` | `/ws/chat` | multi-turn chat |
+
+All HTTP request/response bodies are Pydantic models, and `/ask` returns the same
+`SupportResponse` the crew validates against — the schema is shared, not re-declared.
+An empty question returns `422` from Pydantic before any agent runs.
+
+**The disconnect test** (`transcripts/task11_api_endpoints.txt`) uses two concurrent clients.
+Client A connects, completes two turns, then vanishes with no close handshake. That raises
+`WebSocketDisconnect` inside A's receive loop, which is caught per connection. Client B — open
+throughout — then completes two more turns on the same running server, including an injection
+attempt that comes back `refused=True`. `/health` afterwards reports `active_websockets: 0`,
+so both connections were cleaned up rather than leaked.
+
+`POST /add-document` is demonstrated end to end: a new lost-property policy is indexed
+(1 fixed chunk, 2 sentence chunks) and is immediately retrievable by a following `/ask`. The
+demo then rebuilds both collections from `kb/` so the document doesn't linger into the
+evaluation run.
+
+### Task 12: structured logging (`api/logging_mw.py`)
+
+Raw ASGI middleware, not `BaseHTTPMiddleware` — the latter builds a fresh `Request`
+downstream, so a body read in the middleware is consumed before the endpoint sees it.
+Wrapping `receive` avoids that. WebSocket traffic doesn't pass through HTTP middleware, so
+`log_ws_event()` logs connect / message / disconnect / close separately.
+
+One JSON line per request, to `logs/requests.jsonl`:
+
+```json
+{"ts":"...","trace_id":"c74e0d92a1b34f10","event":"request","channel":"http","method":"POST",
+ "path":"/ask","status":200,"duration_ms":2417.83,
+ "request_text":"I was charged twice on my trip, call me on [PHONE_REDACTED]. What is the refund rule?",
+ "pii_masked":true,"pii_hits":1,"bytes_in":118}
+```
+
+The trace ID is also returned on the response as `x-trace-id`. **The masker runs before the
+line is serialised**, so the number is gone before anything touches disk — it is the same
+masker the Task 10 guardrail uses, not a second implementation that could drift.
+
+The audit at the end of `transcripts/task12_logging.txt` greps the whole log file for the
+number that was actually sent, in three formats:
+
+| Format searched | Occurrences in log |
+| --- | --- |
+| `+91 98765 43210` (as sent) | **0** |
+| `919876543210` (digits only) | **0** |
+| `9876543210` (national) | **0** |
+| `[PHONE_REDACTED]` | 2 |
+
+### Task 13: LLM-as-judge evaluation (`evaluation/`)
+
+15 queries: one per required KB topic (12), plus 3 that should not be answered — two out of
+scope and one prompt injection. Each query runs through the full guarded path, evidence is
+measured from the answer, and the judge prompt is rendered around that evidence.
+
+**Averages across all 15** (`transcripts/task13b_judge_eval.txt`):
+
+| Metric | Average |
+| --- | --- |
+| Accuracy | **1.0000** |
+| Grounding | **1.0000** |
+| Completeness | **0.9667** |
+| Safety | **1.0000** |
+| Overall mean | 0.9917 |
+
+Split by scope: in-scope (n=12) completeness 0.958; out-of-scope (n=3) all four at 1.000.
+Only E05 loses points, missing one of two required facts.
+
+**On the mock judge, plainly.** With no model available it cannot reason about an answer.
+What it does is apply the rubric in `JUDGE_SYSTEM_PROMPT` to evidence that was genuinely
+measured: which document the answer cited, what share of its sentences trace back to
+retrieved context, which required facts are present, and whether anything unsafe got out.
+Every score can be re-derived by hand from the transcript.
+
+Three of the four metrics saturate at 1.000, which is what this architecture *should*
+produce — extractive generation cannot emit an ungrounded sentence, and all three
+out-of-scope queries are correctly declined. Because that is indistinguishable from a judge
+that rubber-stamps everything, the transcript ends with a **negative control** running the
+same judge over deliberately broken output:
+
+| Injected fault | Judge response |
+| --- | --- |
+| Ungrounded sentence spliced in | grounding **0.75** |
+| Answer attributed to the wrong document | accuracy **0.50** |
+| Out-of-scope question answered | accuracy **0.00**, completeness **0.00**, safety **0.00** |
+| Phone number left unmasked | safety **0.00**, grounding 0.75 |
+
+So the high scores reflect correct answers, not a blind judge.
 
 ## Part 4 - Resilience and governance
 
@@ -328,4 +424,8 @@ _In progress._
 | 10 - Prompt injection | `guardrails/injection.py` | `transcripts/task10b_guardrail_injection.txt` |
 | 10 - Groundedness | `guardrails/groundedness.py` | `transcripts/task10c_guardrail_groundedness.txt` |
 | 10 - All three, live path | `guardrails/pipeline.py`, `crew/crew.py` | `transcripts/task10d_guardrails_end_to_end.txt` |
-| 11-16 | _in progress_ | |
+| 11 - FastAPI endpoints + WebSocket | `api/main.py`, `api/demo.py` | `transcripts/task11_api_endpoints.txt` |
+| 12 - JSON-Lines logging + PII audit | `api/logging_mw.py` | `transcripts/task12_logging.txt` |
+| 13 - Evaluation test set | `evaluation/testset.py` | `transcripts/task13a_testset.txt` |
+| 13 - LLM-as-judge scoring | `evaluation/judge.py`, `llm/mock_llm.py` | `transcripts/task13b_judge_eval.txt` |
+| 14-16 | _in progress_ | |
