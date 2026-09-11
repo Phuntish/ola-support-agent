@@ -12,12 +12,16 @@ import json
 
 from crewai.tools import tool
 
-from rag.generate import answer_query
+from governance.cache import cached_answer_query
 
 
 def rag_lookup_payload(query: str) -> dict:
-    """Retrieve and ground an answer, returned as a plain dict for reuse off-crew."""
-    result = answer_query(query)
+    """Retrieve and ground an answer, returned as a plain dict for reuse off-crew.
+
+    Goes through the Task 16 cache, so a repeated question skips the embedding
+    and ranking work entirely.
+    """
+    result = cached_answer_query(query)
     return {
         "answer": result.answer,
         "refused": result.refused,
