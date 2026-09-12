@@ -7,7 +7,8 @@ base, looks up individual support tickets from a generated dataset, remembers a
 conversation, is guarded against misuse, and has its answers reviewed by a second agent
 team before they reach the user.
 
-> Build status: **Parts 1, 2 and 3 complete**. Part 4 is in progress.
+> Build status: **complete** - all 16 tasks across Parts 1-4. `run_all.py` regenerates every
+> transcript in this repository and reports 24/24 steps passing.
 
 ## Everything runs with zero API keys and zero network
 
@@ -403,7 +404,123 @@ So the high scores reflect correct answers, not a blind judge.
 
 ## Part 4 - Resilience and governance
 
-_In progress._
+### Task 14: Autogen review stage (`review/autogen_review.py`)
+
+A `RoundRobinGroupChat` of two agents with `max_turns=2`, so each speaks exactly once:
+
+| Agent | Role |
+| --- | --- |
+| `Policy_Compliance_Reviewer` | scores every draft sentence against the retrieved context |
+| `Final_Editor` | approves or rewrites, `output_content_type=ReviewVerdict` |
+
+`ReviewVerdict` is `approved: bool`, `final_answer: str`, `reason: str`. The team takes the
+Composer's draft **plus the context the crew actually retrieved**, which is why
+`SupportResponse` carries `context` — the reviewer checks against what the composer saw, not
+a fresh retrieval.
+
+Three constructor details are load-bearing, and all three are in the code with comments:
+
+1. `max_turns=2` is the real parameter, not `max_iterations`. With `MaxMessageTermination`
+   it would need `(3)`, since the initiating task message counts as message 1.
+2. `output_content_type=ReviewVerdict` on the agent is **not sufficient**. The team must
+   also be built with `custom_message_types=[StructuredMessage[ReviewVerdict]]` or the run
+   fails with `ValueError: Message type ... is not registered`.
+3. The model client must advertise `structured_output=True` in `model_info`, or
+   `AssistantAgent` rejects `output_content_type` outright.
+
+Both cases are demonstrated on the same question:
+
+| Transcript | approved | draft changed |
+| --- | --- | --- |
+| `task14a_review_approved.txt` | **True** | **False** — byte-identical passthrough |
+| `task14b_review_revised.txt` | **False** | **True** — injected claim removed |
+
+The injected claim for the revise test is written in the policy's own register
+("credits 5000 rupees to the rider's wallet… wait exceeds ten minutes") so it can't be caught
+by vocabulary alone. It scores **0.4915** provenance against a 0.95 threshold, the reviewer
+reports it by name, and the editor removes that sentence while keeping the rest intact.
+
+Exposed as `run_reviewed()` and on the API as `POST /ask {"review": true}`, which returns
+`review_approved` and `review_reason`. It's opt-in per request rather than always-on, since
+it costs two extra model turns.
+
+### Task 15: four-layer governance (`governance/`)
+
+**Application layer — least autonomy.** Tool ownership lives in a registry that raises,
+not in a comment. `tools_for()` is the only supported way to obtain a tool object, and
+`crew/crew.py` no longer imports tools directly:
+
+```
+rag_lookup                       -> Policy Retrieval Specialist
+check_support_ticket_status      -> Ticket Lookup Specialist
+Support Response Composer        -> [] (no tools at all)
+```
+
+Demonstrated refusals (`transcripts/task15a_least_autonomy.txt`):
+
+```
+ToolAccessError: least-autonomy violation: 'check_support_ticket_status' may only be
+held by 'Ticket Lookup Specialist', but 'Policy Retrieval Specialist' asked for it
+```
+
+…the same for the Composer, and an unregistered agent gets nothing at all. The live crew is
+then inspected after construction: `agents holding check_support_ticket_status:
+['Ticket Lookup Specialist']`, `exactly one holder: True`.
+
+A plain "we only wired it to the Lookup Agent" would not survive someone adding a fourth
+agent by copying an existing one. The registry is what makes that a failure instead of a
+silent privilege escalation.
+
+**Risk classification: Medium.** Not Low — Low covers summarisation and transcription, where
+the worst outcome is a poor rendering of text the user already has, whereas this agent states
+policy as fact to riders and drivers who act on it, and a wrong refund window becomes a
+commitment Ola must honour or visibly break. Not High — no medical data, no hiring decision,
+no money movement; the ticket tool exposes a status, a handling time and a derived score,
+which is operational data about a case rather than financial or health data about a person,
+and the one PII field in range is masked before any component sees it. Medium is also the
+level the controls are built for: grounded answers rather than model recall, a second agent
+team reviewing every draft, and record access held by one agent under a registry that raises.
+
+**Runtime layer — budget cap.** Checked *before* the crew starts, because rejecting after the
+fact has already spent what the cap protects.
+
+```
+escalation of cost: (question_tokens + 180 context) x 5 calls
+cap:                1500 tokens ($0.000375 at an assumed $0.00025/1K)
+```
+
+A 9,258-character request projects to **12,470 tokens ($0.003118)** and is rejected with
+`guardrails_triggered: ['budget:request_too_large']` and **0 model calls made**. The error
+names the projection, the cap, the question's own size, and what to do about it. The
+transcript includes a sweep showing the cap bites between 400 and 800 characters.
+
+The dollar rate is a stated assumption, not a measurement — nothing is billed under
+`MOCK_LLM`. The token counts are measured from the text that would be sent.
+
+### Task 16: response caching (`governance/cache.py`)
+
+In-memory, keyed on `normalize_query()` — lowercase, collapse whitespace, strip trailing
+punctuation. Normalisation deliberately stops there; stemming or synonym folding would start
+merging questions that deserve different answers, and a wrong cache hit is worse than a miss.
+
+Wired into `tools/rag_tool.py`, so the crew's retrieval path goes through it.
+
+**Measured** (`transcripts/task16_response_cache.txt`):
+
+| | |
+| --- | --- |
+| Cold call | 58.06 ms |
+| Warm call | 0.03 ms |
+| Speedup | ~1700x |
+| `answer_query()` calls | **1** for 3 lookups |
+| Hit rate | 67% |
+
+The transcript runs a **warm-up call first and excludes it from the timings**. The first
+embedding call in any process loads the model from disk and costs ~4.8 seconds; timing
+against that would have reported a six-figure speedup that measures model loading rather than
+the cache. A third lookup with different capitalisation, spacing and punctuation hits the same
+key, and a genuinely different question still misses — so the cache is keyed on the question
+rather than returning the last answer to everything.
 
 ## Task → file → transcript map
 
@@ -428,4 +545,8 @@ _In progress._
 | 12 - JSON-Lines logging + PII audit | `api/logging_mw.py` | `transcripts/task12_logging.txt` |
 | 13 - Evaluation test set | `evaluation/testset.py` | `transcripts/task13a_testset.txt` |
 | 13 - LLM-as-judge scoring | `evaluation/judge.py`, `llm/mock_llm.py` | `transcripts/task13b_judge_eval.txt` |
-| 14-16 | _in progress_ | |
+| 14 - Review approves unchanged | `review/autogen_review.py`, `review/demo.py` | `transcripts/task14a_review_approved.txt` |
+| 14 - Review revises the draft | `review/autogen_review.py`, `review/demo.py` | `transcripts/task14b_review_revised.txt` |
+| 15 - Least autonomy + risk level | `governance/least_autonomy.py` | `transcripts/task15a_least_autonomy.txt` |
+| 15 - Runtime budget cap | `governance/budget.py` | `transcripts/task15b_budget_cap.txt` |
+| 16 - Response caching | `governance/cache.py` | `transcripts/task16_response_cache.txt` |
