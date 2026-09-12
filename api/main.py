@@ -24,7 +24,7 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
 from api.logging_mw import JsonLinesLoggingMiddleware, log_ws_event, new_trace_id
-from crew.crew import run_guarded
+from crew.crew import run_guarded, run_reviewed
 from crew.memory import ask as ask_with_memory
 from crew.schema import SupportResponse
 from rag.chunking import Document
@@ -47,6 +47,10 @@ class AskRequest(BaseModel):
     session_id: str | None = Field(
         default=None, description="Supply one to keep conversation memory across calls."
     )
+    review: bool = Field(
+        default=False,
+        description="Run the Autogen review team over the draft before returning it.",
+    )
 
 
 class AskResponse(BaseModel):
@@ -54,6 +58,10 @@ class AskResponse(BaseModel):
     response: SupportResponse
     llm_calls: int
     tools_used: list[str] = Field(default_factory=list)
+    review_approved: bool | None = Field(
+        default=None, description="Set when the Task 14 review stage ran."
+    )
+    review_reason: str | None = None
 
 
 class AddDocumentRequest(BaseModel):
@@ -85,6 +93,17 @@ def ask(request: AskRequest) -> AskResponse:
                 query=request.question, answer=answer, retrieval_similarity=0.0
             ),
             llm_calls=0,
+        )
+
+    if request.review:
+        run, verdict = run_reviewed(request.question)
+        return AskResponse(
+            trace_id=new_trace_id(),
+            response=run.response,
+            llm_calls=run.llm_calls,
+            tools_used=run.tools_used,
+            review_approved=None if verdict is None else verdict.approved,
+            review_reason=None if verdict is None else verdict.reason,
         )
 
     run = run_guarded(request.question)

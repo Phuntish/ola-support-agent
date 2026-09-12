@@ -1,7 +1,7 @@
 # Task 12 - JSON-Lines logging and PII audit
 # command: python -m api.demo logging
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 11.8s
+# exit code: 0, wall clock: 10.2s
 ######################################################################
 
 ======================================================================
@@ -14,34 +14,34 @@ lines written by this run: 7
 ----------------------------------------------------------------------
 EVERY LINE FROM THIS RUN
 ----------------------------------------------------------------------
-  {"ts":"2026-09-08T18:33:38.454+00:00","trace_id":"bafb313484fd4cc6","event":"request","channel":"http","method":"GET","path":"/health","status":200,"duration_ms":1.21,"request_text":"","pii_masked":false,"pii_hits":0,"bytes_in":0}
-  {"ts":"2026-09-08T18:33:44.845+00:00","trace_id":"5c020cd8cce546a3","event":"request","channel":"http","method":"POST","path":"/ask","status":200,"duration_ms":6389.45,"request_text":"What is the escalation matrix?","pii_masked":false,"pii_hits":0,"bytes_in":45}
-  {"ts":"2026-09-08T18:33:45.055+00:00","trace_id":"162ed47508a840cd","event":"request","channel":"http","method":"POST","path":"/ask","status":200,"duration_ms":208.04,"request_text":"I was charged twice on my trip, call me on [PHONE_REDACTED]. What is the refund rule?","pii_masked":true,"pii_hits":1,"bytes_in":99}
-  {"ts":"2026-09-08T18:33:45.058+00:00","trace_id":"2c46cfc9dc614024","event":"ws_connect","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"active":1}
-  {"ts":"2026-09-08T18:33:45.281+00:00","trace_id":"2c46cfc9dc614024","event":"ws_message","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":219.79,"request_text":"my number is [PHONE_REDACTED], what is the SLA for P1?","pii_masked":true,"pii_hits":1,"turn":1}
-  {"ts":"2026-09-08T18:33:45.283+00:00","trace_id":"2c46cfc9dc614024","event":"ws_disconnect","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"turns_completed":1}
-  {"ts":"2026-09-08T18:33:45.283+00:00","trace_id":"2c46cfc9dc614024","event":"ws_closed","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"active":0}
+  {"ts":"2026-09-08T19:02:13.562+00:00","trace_id":"e09583e9daec4ef0","event":"request","channel":"http","method":"GET","path":"/health","status":200,"duration_ms":1.5,"request_text":"","pii_masked":false,"pii_hits":0,"bytes_in":0}
+  {"ts":"2026-09-08T19:02:19.096+00:00","trace_id":"8ffe8220b8394e76","event":"request","channel":"http","method":"POST","path":"/ask","status":200,"duration_ms":5532.58,"request_text":"What is the escalation matrix?","pii_masked":false,"pii_hits":0,"bytes_in":45}
+  {"ts":"2026-09-08T19:02:19.313+00:00","trace_id":"8963965aab1b44f2","event":"request","channel":"http","method":"POST","path":"/ask","status":200,"duration_ms":214.93,"request_text":"I was charged twice on my trip, call me on [PHONE_REDACTED]. What is the refund rule?","pii_masked":true,"pii_hits":1,"bytes_in":99}
+  {"ts":"2026-09-08T19:02:19.316+00:00","trace_id":"7c18652160e0445b","event":"ws_connect","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"active":1}
+  {"ts":"2026-09-08T19:02:19.546+00:00","trace_id":"7c18652160e0445b","event":"ws_message","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":226.98,"request_text":"my number is [PHONE_REDACTED], what is the SLA for P1?","pii_masked":true,"pii_hits":1,"turn":1}
+  {"ts":"2026-09-08T19:02:19.547+00:00","trace_id":"7c18652160e0445b","event":"ws_disconnect","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"turns_completed":1}
+  {"ts":"2026-09-08T19:02:19.551+00:00","trace_id":"7c18652160e0445b","event":"ws_closed","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"active":0}
 
 ----------------------------------------------------------------------
 THE LINE FOR THE REQUEST THAT CONTAINED A PHONE NUMBER
 ----------------------------------------------------------------------
 {
-  "ts": "2026-09-08T18:33:45.055+00:00",
-  "trace_id": "162ed47508a840cd",
+  "ts": "2026-09-08T19:02:19.313+00:00",
+  "trace_id": "8963965aab1b44f2",
   "event": "request",
   "channel": "http",
   "method": "POST",
   "path": "/ask",
   "status": 200,
-  "duration_ms": 208.04,
+  "duration_ms": 214.93,
   "request_text": "I was charged twice on my trip, call me on [PHONE_REDACTED]. What is the refund rule?",
   "pii_masked": true,
   "pii_hits": 1,
   "bytes_in": 99
 }
 
-  trace_id       : 162ed47508a840cd
-  duration_ms    : 208.04
+  trace_id       : 8963965aab1b44f2
+  duration_ms    : 214.93
   pii_masked     : True  (1 match)
 
 ----------------------------------------------------------------------
@@ -53,7 +53,8 @@ AUDIT - did the raw number reach disk?
   [ok  ] digits only            '919876543210'       occurrences in log: 0
   [ok  ] national format        '9876543210'         occurrences in log: 0
 
-  '[PHONE_REDACTED]' occurrences in log: 4
+  '[PHONE_REDACTED]' in this run's lines : 2
+  lines this run carrying pii_masked=true: 2
 
   The masker runs before the line is serialised, so the number is gone by the
   time anything is written. It is the same masker the Task 10 guardrail uses.

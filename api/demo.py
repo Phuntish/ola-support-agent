@@ -231,7 +231,13 @@ def demo_logging() -> None:
         hits = raw_text.count(needle)
         print(f"  [{'FAIL' if hits else 'ok  '}] {label:<22} {needle!r:<20} occurrences in log: {hits}")
     print()
-    print(f"  '[PHONE_REDACTED]' occurrences in log: {raw_text.count('[PHONE_REDACTED]')}")
+    # The raw-number search above covers the whole file on purpose - that is the
+    # claim worth making. The redaction count is scoped to this run's lines, since
+    # the log is appended to and a whole-file count would drift every time.
+    this_run = "\n".join(new_lines)
+    print(f"  '[PHONE_REDACTED]' in this run's lines : {this_run.count('[PHONE_REDACTED]')}")
+    print(f"  lines this run carrying pii_masked=true: "
+          f"{sum(1 for line in new_lines if json.loads(line)['pii_masked'])}")
     print()
     print("  The masker runs before the line is serialised, so the number is gone by the")
     print("  time anything is written. It is the same masker the Task 10 guardrail uses.")

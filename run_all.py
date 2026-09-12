@@ -42,6 +42,12 @@ STEPS: list[tuple[str, list[str], str]] = [
     ("task12_logging", ["api.demo", "logging"], "Task 12 - JSON-Lines logging and PII audit"),
     ("task13a_testset", ["evaluation.testset"], "Task 13 - the 15-query test set"),
     ("task13b_judge_eval", ["evaluation.judge"], "Task 13 - LLM-as-judge scoring"),
+    # Part 4 - review stage, governance, caching
+    ("task14a_review_approved", ["review.demo", "approved"], "Task 14 - review approves unchanged"),
+    ("task14b_review_revised", ["review.demo", "revised"], "Task 14 - review revises the draft"),
+    ("task15a_least_autonomy", ["governance.least_autonomy"], "Task 15 - least autonomy + risk"),
+    ("task15b_budget_cap", ["governance.budget"], "Task 15 - runtime budget cap"),
+    ("task16_response_cache", ["governance.cache"], "Task 16 - response caching"),
 ]
 
 
