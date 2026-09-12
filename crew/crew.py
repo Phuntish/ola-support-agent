@@ -23,8 +23,6 @@ from crewai import Crew, Process, Task
 from crew.agents import COMPOSER_AGENT, LOOKUP_AGENT, RETRIEVAL_AGENT, build_agents
 from crew.schema import SupportResponse, validate_crew_output
 from llm.mock_llm import get_llm
-from tools.rag_tool import rag_lookup
-from tools.ticket_status import ticket_status_tool
 
 RECORD_ID_PATTERN = re.compile(r"\bOLA-\d{4}\b", re.IGNORECASE)
 
@@ -45,12 +43,15 @@ def mentions_ticket(question: str) -> bool:
 def build_crew(question: str, llm=None) -> tuple[Crew, Any]:
     llm = llm or get_llm()
 
-    # Task 15: the ticket tool is handed only to the Lookup Agent, and the
-    # Retrieval Agent's tool list is built separately so the two cannot mix.
+    # Task 15: tools come from the least-autonomy registry, which refuses any
+    # pairing it has not declared. Importing a tool directly here would bypass it,
+    # so nothing in this module does.
+    from governance.least_autonomy import tools_for
+
     agents = build_agents(
         llm=llm,
-        retrieval_tools=[rag_lookup],
-        lookup_tools=[ticket_status_tool()],
+        retrieval_tools=tools_for(RETRIEVAL_AGENT),
+        lookup_tools=tools_for(LOOKUP_AGENT),
     )
 
     retrieval_task = Task(
@@ -99,11 +100,30 @@ def run_guarded(question: str, llm=None) -> CrewRun:
     anything else runs, and PII is masked before the text reaches either the
     agents or the logger.
     """
+    from governance.budget import BudgetExceeded, enforce_budget
     from guardrails.groundedness import REFUSAL_TEXT, check_groundedness
     from guardrails.injection import BLOCK_MESSAGE, detect_injection
     from guardrails.pii import mask_pii
 
     triggered: list[str] = []
+
+    # Task 15, runtime layer. First thing checked, because rejecting a request
+    # after the crew has run has already spent what the cap exists to protect.
+    try:
+        enforce_budget(question)
+    except BudgetExceeded as exc:
+        return CrewRun(
+            question=question,
+            response=SupportResponse(
+                query=question,
+                answer=str(exc),
+                refused=True,
+                retrieval_similarity=0.0,
+                guardrails_triggered=["budget:request_too_large"],
+            ),
+            raw="",
+            llm_calls=0,
+        )
 
     verdict = detect_injection(question)
     if verdict.blocked:

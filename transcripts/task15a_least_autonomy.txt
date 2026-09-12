@@ -1,0 +1,67 @@
+# Task 15 - least autonomy + risk
+# command: python -m governance.least_autonomy
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 3.7s
+######################################################################
+
+======================================================================
+TASK 15 - APPLICATION LAYER: LEAST AUTONOMY
+======================================================================
+Declared ownership
+  rag_lookup                       -> Policy Retrieval Specialist
+  check_support_ticket_status      -> Ticket Lookup Specialist
+
+Per-agent entitlement
+  Policy Retrieval Specialist      ['rag_lookup']
+  Ticket Lookup Specialist         ['check_support_ticket_status']
+  Support Response Composer        [] (no tools at all)
+
+----------------------------------------------------------------------
+ALLOWED - the Lookup Agent asks for the ticket tool
+----------------------------------------------------------------------
+  granted: check_support_ticket_status
+
+----------------------------------------------------------------------
+BLOCKED - every other agent asking for the same tool
+----------------------------------------------------------------------
+  [refused] Policy Retrieval Specialist
+            ToolAccessError: least-autonomy violation: 'check_support_ticket_status' may only be held by 'Ticket Lookup Specialist', but 'Policy Retrieval Specialist' asked for it
+  [refused] Support Response Composer
+            ToolAccessError: least-autonomy violation: 'check_support_ticket_status' may only be held by 'Ticket Lookup Specialist', but 'Support Response Composer' asked for it
+
+----------------------------------------------------------------------
+BLOCKED - an unregistered agent asking for anything
+----------------------------------------------------------------------
+  [refused] ToolAccessError: 'Some New Agent Somebody Added' is not a registered agent
+
+----------------------------------------------------------------------
+THE LIVE CREW, INSPECTED AFTER CONSTRUCTION
+----------------------------------------------------------------------
+  Policy Retrieval Specialist        tools=['rag_lookup']
+                                     holds ticket tool: False
+  Ticket Lookup Specialist           tools=['check_support_ticket_status']
+                                     holds ticket tool: True
+  Support Response Composer          tools=[]
+                                     holds ticket tool: False
+
+  agents holding check_support_ticket_status: ['Ticket Lookup Specialist']
+  exactly one holder: True
+
+======================================================================
+RISK CLASSIFICATION: Medium
+======================================================================
+This system is classified Medium risk on the Low / Medium / High scheme, and it sits
+there for the reason the scheme names customer support tickets explicitly. It is not
+Low: Low covers summarisation and transcription, where the worst outcome is a poor
+rendering of text the user already has, whereas this agent states policy as fact to
+riders and drivers who will act on it, and a wrong refund window or a wrong SLA
+becomes a commitment Ola has to honour or visibly break. It is not High either: it
+touches no medical data, makes no hiring decision, and moves no money. It reads a
+ticket record and quotes published policy. The ticket tool exposes a status, a
+handling time and a derived score - operational data about a support case, not
+financial or health data about a person, and the one PII field in range is masked
+before any component sees it. Medium is also the level the controls are built for:
+a human is still in the loop for anything the policy does not already cover, the
+answer is grounded in retrieved documents rather than model recall, a second agent
+team reviews every draft, and the tool that reads customer records is held by one
+agent under a registry that raises rather than warns.

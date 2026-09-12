@@ -1,0 +1,54 @@
+# Task 15 - runtime budget cap
+# command: python -m governance.budget
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 12.0s
+######################################################################
+
+======================================================================
+TASK 15 - RUNTIME LAYER: PER-REQUEST BUDGET CAP
+======================================================================
+  cap per request      : 1500 tokens  ($0.000375)
+  assumed rate         : $0.00025 per 1K tokens
+  token estimate       : len(text) // 4
+  projection           : (question + 180 context) x 5 calls
+
+  The cap is checked before the crew starts. Rejecting after the fact would
+  mean the tokens were already spent, which defeats the purpose.
+
+----------------------------------------------------------------------
+1. NORMAL REQUEST - passes the cap and runs
+----------------------------------------------------------------------
+  question         : What is the refund rule when a rider is charged twice?
+  question chars   : 54
+  965 projected tokens ($0.000241) against a cap of 1500 ($0.000375)
+  within budget    : True
+  crew ran         : yes, 3 model calls
+  answer           : Refunds are issued when a rider was charged for a trip that did not take place, was charged twice for one trip, or was billed a toll or surc
+
+----------------------------------------------------------------------
+2. OVERSIZED REQUEST - rejected before anything runs
+----------------------------------------------------------------------
+  question chars   : 9258
+  question preview : Here is the whole conversation with the rider, please read all of it and tell me what our refund and escalatio...
+  12470 projected tokens ($0.003118) against a cap of 1500 ($0.000375)
+  within budget    : False
+
+  BudgetExceeded raised:
+    Request rejected: it would use about 12470 tokens ($0.003118), over the per-request cap of 1500 tokens ($0.000375). The question is 2314 tokens on its own. Shorten it or split it into separate questions.
+
+  and through the live request path, which applies the cap itself:
+    refused              : True
+    guardrails_triggered : ['budget:request_too_large']
+    model calls made     : 0   <- nothing was spent
+    reply                : Request rejected: it would use about 12470 tokens ($0.003118), over the per-request cap of 1500 tokens ($0.000375). The question is 2314 tokens on its own. Shorten it or split it into separate questio
+
+----------------------------------------------------------------------
+3. WHERE THE CAP BITES
+----------------------------------------------------------------------
+    question chars   projected tokens   within cap
+               100               1025         True
+               400               1400         True
+               800               1900        False
+              1000               2150        False
+              1200               2400        False
+              2000               3400        False
