@@ -1,0 +1,59 @@
+# Task 14 - review approves unchanged
+# command: python -m review.demo approved
+# MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
+# exit code: 0, wall clock: 13.0s
+######################################################################
+
+======================================================================
+TASK 14 - REVIEW STAGE APPROVES THE DRAFT UNCHANGED
+======================================================================
+team          : RoundRobinGroupChat, max_turns=2
+participants  : Policy_Compliance_Reviewer -> Final_Editor
+verdict model : ReviewVerdict('approved', 'final_answer', 'reason')
+registration  : custom_message_types=[StructuredMessage[ReviewVerdict]]
+model client  : MockReviewClient, structured_output=True
+
+question: How much is the standard service credit and when does it expire?
+retrieved context: 2 chunks from ['service-credit-policy']
+
+----------------------------------------------------------------------
+COMPOSER DRAFT GOING IN
+----------------------------------------------------------------------
+  The standard credit is 100 rupees, rising to 250 rupees where the customer was left waiting more than 30 minutes. Service credits expire 90 days after issue, cannot be withdrawn as cash, and are limited to two per customer in any rolling 30-day window. A service credit is a non-cash amount added to the customer's Ola Money wallet to acknowledge a service failure that a refund alone does not cover.
+
+----------------------------------------------------------------------
+CONVERSATION
+----------------------------------------------------------------------
+
+  [user] TextMessage
+     A support draft needs review before it is sent.
+     
+     QUESTION: How much is the standard service credit and when does it expire?
+     
+     DRAFT ANSWER:
+     The standard credit is 100 rupees, rising to 250 rupees where the customer was left waiting more than 30 minutes. Service credits expire 90 days after issue, cannot be withdrawn as cash, and are limited to two per customer in any rolling 30-day window. A service credit is a non-cash amount added to the customer's Ola Money wallet to acknowledge a service failure that a refund alone does not cover.
+     
+     RETRIEVED POLICY CONTEXT:
+     - Service Credit Policy. The standard credit is 100 rupees, rising to 250 rupees where the customer was left waiting more than 30 min ...
+
+  [Policy_Compliance_Reviewer] TextMessage
+     FINDINGS: none. Every sentence in the draft traces back to the retrieved policy context. The draft is safe to send unchanged.
+
+  [Final_Editor] StructuredMessage[ReviewVerdict]
+     approved     : True
+     reason       : The reviewer found no unsupported sentences; every claim traces back to the retrieved policy context, so the draft goes out unchanged.
+     final_answer : The standard credit is 100 rupees, rising to 250 rupees where the customer was left waiting more than 30 minutes. Service credits expire 90 days after issue, cannot be withdrawn as cash, and are limit
+
+----------------------------------------------------------------------
+VERDICT
+----------------------------------------------------------------------
+  type          : ReviewVerdict (Pydantic structured output)
+  approved      : True
+  reason        : The reviewer found no unsupported sentences; every claim traces back to the retrieved policy context, so the draft goes out unchanged.
+  draft changed : False
+
+  final answer released to the customer:
+    The standard credit is 100 rupees, rising to 250 rupees where the customer was left waiting more than 30 minutes. Service credits expire 90 days after issue, cannot be withdrawn as cash, and are limited to two per customer in any rolling 30-day window. A service credit is a non-cash amount added to the customer's Ola Money wallet to acknowledge a service failure that a refund alone does not cover.
+
+  byte-identical to the draft: True
+  Nothing was flagged, so the editor passed the draft through untouched.

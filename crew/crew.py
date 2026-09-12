@@ -175,6 +175,24 @@ def run_support_crew(question: str, llm=None) -> CrewRun:
     )
 
 
+def run_reviewed(question: str, llm=None) -> tuple[CrewRun, "object"]:
+    """Full path plus the Task 14 Autogen review stage before the answer is released.
+
+    Kept separate from run_guarded so the review stage is opt-in per request: it is
+    two more model turns, and the API exposes it as a flag rather than paying for
+    it on every call.
+    """
+    from review.autogen_review import review_draft
+
+    run = run_guarded(question, llm=llm)
+    if run.response.refused or not run.response.context:
+        return run, None
+
+    verdict, _ = review_draft(question, run.response.answer, run.response.context)
+    run.response = run.response.model_copy(update={"answer": verdict.final_answer})
+    return run, verdict
+
+
 DEMO_QUERIES = [
     ("RAG tool path", "What is the refund rule when a rider is charged twice for one trip?"),
     ("Lookup tool path", "What is the status of ticket OLA-0006 and should we escalate it?"),
