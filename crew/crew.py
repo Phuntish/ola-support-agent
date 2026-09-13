@@ -17,6 +17,14 @@ os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 # CrewAI 1.9 asks an interactive yes/no about execution tracing on first run,
 # which would hang an unattended run_all.py. Turn it off before importing.
 os.environ.setdefault("CREWAI_TRACING_ENABLED", "false")
+# CrewAI keys its "first execution" marker on the project DIRECTORY NAME
+# (appdirs.user_data_dir(get_project_directory_name())), so a fresh clone
+# under any other folder name is treated as a first run and prompts
+# "Would you like to view your execution traces? [y/N] (20s timeout)".
+# CREWAI_TESTING is the only switch that suppresses it. In crewai 1.9.3 it is
+# read in exactly one functional place - _is_test_environment() in
+# events/listeners/tracing/utils.py - so it gates those prompts and nothing else.
+os.environ.setdefault("CREWAI_TESTING", "true")
 
 from crewai import Crew, Process, Task
 

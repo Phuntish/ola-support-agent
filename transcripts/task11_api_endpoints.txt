@@ -1,7 +1,7 @@
 # Task 11 - FastAPI endpoints and WebSocket
 # command: python -m api.demo endpoints
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 18.3s
+# exit code: 0, wall clock: 12.0s
 ######################################################################
 
 ======================================================================
@@ -21,14 +21,14 @@ routes:
 1. GET /health
 ----------------------------------------------------------------------
   GET /health
-    HTTP 200   x-trace-id: 7d4123fbb6bf4e38
+    HTTP 200   x-trace-id: 7eae2a3194df486d
     body: {'status': 'ok', 'mode': 'MOCK_LLM', 'active_websockets': '0'}
 
 ----------------------------------------------------------------------
 2. POST /ask - policy question
 ----------------------------------------------------------------------
   POST /ask
-    HTTP 200   x-trace-id: fb5d0c26d1894ba1
+    HTTP 200   x-trace-id: 893a5abfc6734c32
     sources : ['ticket-data-retention', 'business-hours-and-holidays']
     refused : False
     answer  : Tickets connected to a safety incident, a regulatory request, or active litigation are placed under a legal hold and are exempt from the automatic deletion until the hold is lifted
@@ -37,7 +37,7 @@ routes:
 3. POST /ask - ticket lookup, validated against the Pydantic schema
 ----------------------------------------------------------------------
   POST /ask
-    HTTP 200   x-trace-id: f0cb5698ed4a4a44
+    HTTP 200   x-trace-id: b131be726c394d6f
     tools_used : ['rag_lookup', 'check_support_ticket_status']
     ticket     : {'record_id': 'OLA-0006', 'status': 'Closed', 'resolution_time_hours': 7.6, 'escalation_score': 0.775, 'escalate_recommended': True, 'escalation_threshold': 0.303}
 
@@ -45,14 +45,14 @@ routes:
 4. POST /ask - request body fails validation
 ----------------------------------------------------------------------
   POST /ask with empty question
-    HTTP 422   x-trace-id: eed67996f7764661
+    HTTP 422   x-trace-id: 0c49d157310d46f2
     detail: String should have at least 1 character
 
 ----------------------------------------------------------------------
 5. POST /add-document - new policy into both collections
 ----------------------------------------------------------------------
   POST /add-document
-    HTTP 200   x-trace-id: d862d874b9fc4ad4
+    HTTP 200   x-trace-id: ceb739bde0514ce9
     body: {'doc_id': 'lost-property-policy', 'chunks_indexed': {'fixed': 1, 'sentence': 2}, 'message': 'Indexed lost-property-policy into both collections.'}
 
     the new document is immediately retrievable:
@@ -93,5 +93,5 @@ CLEANUP
   lost-property-policy was a demo document and is no longer indexed.
 
 --- stderr ---
-/Users/MK/Claude/ola-support-agent/api/main.py:28: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
+/Users/MK/Claude/ola-support-agent/api/main.py:36: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
   from crew.memory import ask as ask_with_memory

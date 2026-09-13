@@ -1,7 +1,7 @@
 # Task 13 - LLM-as-judge scoring
 # command: python -m evaluation.judge
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 12.0s
+# exit code: 0, wall clock: 12.3s
 ######################################################################
 
 ======================================================================

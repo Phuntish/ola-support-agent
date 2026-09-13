@@ -1,7 +1,7 @@
 # Task 9 - structured response schema
 # command: python -m crew.schema
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 0.3s
+# exit code: 0, wall clock: 0.2s
 ######################################################################
 
 ======================================================================

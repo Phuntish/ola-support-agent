@@ -1,7 +1,7 @@
 # Task 14 - review approves unchanged
 # command: python -m review.demo approved
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 13.0s
+# exit code: 0, wall clock: 8.5s
 ######################################################################
 
 ======================================================================

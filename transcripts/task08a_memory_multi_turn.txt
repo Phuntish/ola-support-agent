@@ -1,7 +1,7 @@
 # Task 8 - memory carried across turns
 # command: python -m crew.memory multi
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 10.8s
+# exit code: 0, wall clock: 9.3s
 ######################################################################
 
 ======================================================================

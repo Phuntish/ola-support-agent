@@ -19,6 +19,14 @@ import sys
 os.environ.setdefault("CREWAI_DISABLE_TELEMETRY", "true")
 os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 os.environ.setdefault("CREWAI_TRACING_ENABLED", "false")
+# CrewAI keys its "first execution" marker on the project DIRECTORY NAME
+# (appdirs.user_data_dir(get_project_directory_name())), so a fresh clone
+# under any other folder name is treated as a first run and prompts
+# "Would you like to view your execution traces? [y/N] (20s timeout)".
+# CREWAI_TESTING is the only switch that suppresses it. In crewai 1.9.3 it is
+# read in exactly one functional place - _is_test_environment() in
+# events/listeners/tracing/utils.py - so it gates those prompts and nothing else.
+os.environ.setdefault("CREWAI_TESTING", "true")
 
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables import RunnableLambda

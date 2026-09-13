@@ -1,7 +1,7 @@
 # Task 8 - fresh session, state absent
 # command: python -m crew.memory fresh
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 10.9s
+# exit code: 0, wall clock: 8.9s
 ######################################################################
 
 ======================================================================

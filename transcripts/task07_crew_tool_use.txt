@@ -1,7 +1,7 @@
 # Task 7 - CrewAI crew with tool use
 # command: python -m crew.crew
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 14.0s
+# exit code: 0, wall clock: 9.0s
 ######################################################################
 
 ======================================================================

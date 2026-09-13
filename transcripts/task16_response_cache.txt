@@ -1,7 +1,7 @@
 # Task 16 - response caching
 # command: python -m governance.cache
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 11.9s
+# exit code: 0, wall clock: 7.0s
 ######################################################################
 
 ======================================================================
@@ -22,7 +22,7 @@ NORMALISATION - which queries collapse to one key
 ----------------------------------------------------------------------
 WARM-UP (excluded from the measurements below)
 ----------------------------------------------------------------------
-  first call in the process:  8529.70 ms  <- mostly loading the model
+  first call in the process:  4787.24 ms  <- mostly loading the model
   the model is now resident, so what follows measures the cache and nothing else
 
 ----------------------------------------------------------------------
@@ -32,7 +32,7 @@ BEFORE / AFTER ON A REPEATED QUERY
 
   starting state: 0 hits, 0 misses, 0 calls to answer_query()
 
-  call 1 (cold)  :   126.14 ms
+  call 1 (cold)  :    69.13 ms
                    hits=0 misses=1 answer_query calls=1
                    sources=['service-credit-policy']
 
@@ -49,9 +49,9 @@ EVIDENCE
   answer_query() was called 1 time(s) for 3 lookups
   cache hits           : 2
   hit rate             : 67%
-  cold call            : 126.14 ms
+  cold call            : 69.13 ms
   warm call            : 0.02 ms
-  speedup              : 5619x
+  speedup              : 4208x
   identical result     : True
   variant same result  : True
 
@@ -59,7 +59,7 @@ EVIDENCE
 A DIFFERENT QUESTION STILL MISSES
 ----------------------------------------------------------------------
   query: How often do we send updates during an outage?
-    115.50 ms, hits=2 misses=2 answer_query calls=2
+     54.15 ms, hits=2 misses=2 answer_query calls=2
   sources=['outage-communication']
 
   So the cache is keyed on the question, not returning the last answer to

@@ -1,14 +1,14 @@
 # Task 3 - embedding and Chroma collections
 # command: python -m rag.index
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 12.4s
+# exit code: 0, wall clock: 11.6s
 ######################################################################
 
 ======================================================================
 TASK 3 - EMBEDDING AND INDEXING
 ======================================================================
 embedding model : sentence-transformers/all-MiniLM-L6-v2
-chroma path     : /Users/MK/Claude/ola-support-agent/.chroma
+chroma path     : ./.chroma/ (repo root)
 documents       : 12
 collection ola_kb_fixed       strategy=fixed     chunks upserted=25   count()=25
 collection ola_kb_sentence    strategy=sentence  chunks upserted=37   count()=37

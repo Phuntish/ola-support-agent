@@ -1,7 +1,7 @@
 # Task 15 - runtime budget cap
 # command: python -m governance.budget
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 12.0s
+# exit code: 0, wall clock: 8.7s
 ######################################################################
 
 ======================================================================

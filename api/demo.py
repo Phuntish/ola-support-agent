@@ -168,7 +168,7 @@ def demo_logging() -> None:
     print("=" * 70)
     print("TASK 12 - JSON-LINES REQUEST LOGGING")
     print("=" * 70)
-    print(f"log file: {LOG_PATH}")
+    print(f"log file: ./{LOG_PATH.parent.name}/{LOG_PATH.name} (repo root)")
     print()
 
     # Only read what this run appends, so nothing existing is touched.

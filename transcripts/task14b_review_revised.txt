@@ -1,7 +1,7 @@
 # Task 14 - review revises the draft
 # command: python -m review.demo revised
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 14.2s
+# exit code: 0, wall clock: 8.3s
 ######################################################################
 
 ======================================================================

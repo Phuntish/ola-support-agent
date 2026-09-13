@@ -7,41 +7,41 @@
 ======================================================================
 TASK 12 - JSON-LINES REQUEST LOGGING
 ======================================================================
-log file: /Users/MK/Claude/ola-support-agent/logs/requests.jsonl
+log file: ./logs/requests.jsonl (repo root)
 
 lines written by this run: 7
 
 ----------------------------------------------------------------------
 EVERY LINE FROM THIS RUN
 ----------------------------------------------------------------------
-  {"ts":"2026-09-08T19:02:13.562+00:00","trace_id":"e09583e9daec4ef0","event":"request","channel":"http","method":"GET","path":"/health","status":200,"duration_ms":1.5,"request_text":"","pii_masked":false,"pii_hits":0,"bytes_in":0}
-  {"ts":"2026-09-08T19:02:19.096+00:00","trace_id":"8ffe8220b8394e76","event":"request","channel":"http","method":"POST","path":"/ask","status":200,"duration_ms":5532.58,"request_text":"What is the escalation matrix?","pii_masked":false,"pii_hits":0,"bytes_in":45}
-  {"ts":"2026-09-08T19:02:19.313+00:00","trace_id":"8963965aab1b44f2","event":"request","channel":"http","method":"POST","path":"/ask","status":200,"duration_ms":214.93,"request_text":"I was charged twice on my trip, call me on [PHONE_REDACTED]. What is the refund rule?","pii_masked":true,"pii_hits":1,"bytes_in":99}
-  {"ts":"2026-09-08T19:02:19.316+00:00","trace_id":"7c18652160e0445b","event":"ws_connect","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"active":1}
-  {"ts":"2026-09-08T19:02:19.546+00:00","trace_id":"7c18652160e0445b","event":"ws_message","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":226.98,"request_text":"my number is [PHONE_REDACTED], what is the SLA for P1?","pii_masked":true,"pii_hits":1,"turn":1}
-  {"ts":"2026-09-08T19:02:19.547+00:00","trace_id":"7c18652160e0445b","event":"ws_disconnect","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"turns_completed":1}
-  {"ts":"2026-09-08T19:02:19.551+00:00","trace_id":"7c18652160e0445b","event":"ws_closed","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"active":0}
+  {"ts":"2026-09-13T07:03:11.992+00:00","trace_id":"864ef14870a04fae","event":"request","channel":"http","method":"GET","path":"/health","status":200,"duration_ms":1.47,"request_text":"","pii_masked":false,"pii_hits":0,"bytes_in":0}
+  {"ts":"2026-09-13T07:03:17.322+00:00","trace_id":"43a18e73acd04516","event":"request","channel":"http","method":"POST","path":"/ask","status":200,"duration_ms":5328.04,"request_text":"What is the escalation matrix?","pii_masked":false,"pii_hits":0,"bytes_in":45}
+  {"ts":"2026-09-13T07:03:17.562+00:00","trace_id":"ea292133ac924cb6","event":"request","channel":"http","method":"POST","path":"/ask","status":200,"duration_ms":238.24,"request_text":"I was charged twice on my trip, call me on [PHONE_REDACTED]. What is the refund rule?","pii_masked":true,"pii_hits":1,"bytes_in":99}
+  {"ts":"2026-09-13T07:03:17.565+00:00","trace_id":"572d4ed7760e4c14","event":"ws_connect","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"active":1}
+  {"ts":"2026-09-13T07:03:17.799+00:00","trace_id":"572d4ed7760e4c14","event":"ws_message","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":231.11,"request_text":"my number is [PHONE_REDACTED], what is the SLA for P1?","pii_masked":true,"pii_hits":1,"turn":1}
+  {"ts":"2026-09-13T07:03:17.800+00:00","trace_id":"572d4ed7760e4c14","event":"ws_disconnect","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"turns_completed":1}
+  {"ts":"2026-09-13T07:03:17.805+00:00","trace_id":"572d4ed7760e4c14","event":"ws_closed","channel":"websocket","method":"WS","path":"/ws/chat","status":null,"duration_ms":0.0,"request_text":"","pii_masked":false,"pii_hits":0,"active":0}
 
 ----------------------------------------------------------------------
 THE LINE FOR THE REQUEST THAT CONTAINED A PHONE NUMBER
 ----------------------------------------------------------------------
 {
-  "ts": "2026-09-08T19:02:19.313+00:00",
-  "trace_id": "8963965aab1b44f2",
+  "ts": "2026-09-13T07:03:17.562+00:00",
+  "trace_id": "ea292133ac924cb6",
   "event": "request",
   "channel": "http",
   "method": "POST",
   "path": "/ask",
   "status": 200,
-  "duration_ms": 214.93,
+  "duration_ms": 238.24,
   "request_text": "I was charged twice on my trip, call me on [PHONE_REDACTED]. What is the refund rule?",
   "pii_masked": true,
   "pii_hits": 1,
   "bytes_in": 99
 }
 
-  trace_id       : 8963965aab1b44f2
-  duration_ms    : 214.93
+  trace_id       : ea292133ac924cb6
+  duration_ms    : 238.24
   pii_masked     : True  (1 match)
 
 ----------------------------------------------------------------------
@@ -60,5 +60,5 @@ AUDIT - did the raw number reach disk?
   time anything is written. It is the same masker the Task 10 guardrail uses.
 
 --- stderr ---
-/Users/MK/Claude/ola-support-agent/api/main.py:28: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
+/Users/MK/Claude/ola-support-agent/api/main.py:36: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
   from crew.memory import ask as ask_with_memory

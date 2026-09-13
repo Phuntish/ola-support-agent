@@ -1,7 +1,7 @@
 # Task 15 - least autonomy + risk
 # command: python -m governance.least_autonomy
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 3.7s
+# exit code: 0, wall clock: 2.3s
 ######################################################################
 
 ======================================================================

@@ -58,6 +58,9 @@ def child_env() -> dict[str, str]:
     env.setdefault("CREWAI_DISABLE_TELEMETRY", "true")
     env.setdefault("OTEL_SDK_DISABLED", "true")
     env.setdefault("CREWAI_TRACING_ENABLED", "false")
+    # Suppresses CrewAI's first-run tracing prompt, which otherwise appears for
+    # anyone running this from a differently named directory. See crew/crew.py.
+    env.setdefault("CREWAI_TESTING", "true")
     env.setdefault("ANONYMIZED_TELEMETRY", "False")
     env.setdefault("TOKENIZERS_PARALLELISM", "false")
     env["PYTHONPATH"] = str(ROOT)

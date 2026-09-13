@@ -162,7 +162,9 @@ def main() -> None:
     print("TASK 3 - EMBEDDING AND INDEXING")
     print("=" * 70)
     print(f"embedding model : {EMBED_MODEL_NAME}")
-    print(f"chroma path     : {CHROMA_DIR}")
+    # Relative, so the transcript is identical on any machine rather than carrying
+    # whatever absolute path this happened to be checked out to.
+    print(f"chroma path     : ./{CHROMA_DIR.relative_to(CHROMA_DIR.parent)}/ (repo root)")
     print(f"documents       : {len(documents)}")
     for strategy in (FIXED_STRATEGY, SENTENCE_STRATEGY):
         collection = get_collection(strategy)

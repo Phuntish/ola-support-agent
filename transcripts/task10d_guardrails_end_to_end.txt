@@ -1,7 +1,7 @@
 # Task 10 - all three on the live path
 # command: python -m guardrails.pipeline
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 10.0s
+# exit code: 0, wall clock: 9.3s
 ######################################################################
 
 ======================================================================

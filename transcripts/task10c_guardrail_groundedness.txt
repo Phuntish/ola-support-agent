@@ -1,7 +1,7 @@
 # Task 10 - groundedness
 # command: python -m guardrails.groundedness
 # MOCK_LLM=1, CREWAI_DISABLE_TELEMETRY=true, no network calls
-# exit code: 0, wall clock: 7.8s
+# exit code: 0, wall clock: 6.8s
 ######################################################################
 
 ======================================================================
